@@ -1,0 +1,3103 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartClass - Role Selection</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg: #0f1020;
+            --card: #0b1220;
+            --accent1: #6EE7B7;
+            --accent2: #7C4DFF;
+            --neon: #00FFE1;
+            --glass: rgba(255, 255, 255, 0.04);
+            --muted: #bfc7d6;
+            --radius: 14px;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .camera-container {
+            position: relative;
+            width: 100%;
+            padding-bottom: 60%;
+        }
+
+        video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 1.5rem;
+            background-color: black;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .attendance-marker {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.05);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        /* Neon Rescheduler Styles */
+        .panel {
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
+            border: 1px solid rgba(124, 77, 255, 0.09);
+            border-radius: var(--radius);
+            padding: 16px;
+            box-shadow: 0 10px 30px rgba(2, 6, 23, 0.6), 0 0 30px rgba(124, 77, 255, 0.04) inset;
+        }
+
+        .input,
+        select,
+        textarea {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            padding: 10px 12px;
+            border-radius: 10px;
+            color: #eaf6ff;
+            outline: none;
+        }
+
+        .btn {
+            background: linear-gradient(90deg, var(--accent2), var(--accent1));
+            border: none;
+            color: #041024;
+            padding: 10px 14px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            box-shadow: 0 6px 16px rgba(124, 77, 255, 0.18);
+        }
+
+        .subject-chip {
+            background: linear-gradient(90deg, rgba(124, 77, 255, 0.12), rgba(110, 231, 183, 0.06));
+            border-radius: 10px;
+            padding: 8px;
+            min-width: 260px;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            color: var(--neon);
+            font-size: 13px;
+        }
+
+        table.grid {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        table.grid th,
+        table.grid td {
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            padding: 10px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .badge {
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: linear-gradient(90deg, #00ffe1, #7c4dff);
+            color: #041018;
+            font-weight: 700;
+            font-size: 13px;
+            box-shadow: 0 8px 18px rgba(124, 77, 255, 0.08);
+        }
+
+        /* Login Cards Hover Effects */
+        .login-card {
+            transition: all 0.3s ease;
+            transform: translateY(0);
+        }
+
+        .login-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Editable Timetable Styles */
+        [contenteditable="true"] {
+            outline: none;
+            padding: 2px 4px;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+
+        [contenteditable="true"]:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        [contenteditable="true"]:focus {
+            background-color: rgba(255, 255, 255, 0.15);
+            border: 1px dashed rgba(124, 77, 255, 0.5);
+        }
+
+        .timetable-entry {
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .timetable-entry:hover {
+            transform: translateX(4px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .edit-entry-btn, .delete-entry-btn {
+            transition: all 0.2s;
+        }
+
+        .edit-entry-btn:hover, .delete-entry-btn:hover {
+            transform: scale(1.1);
+        }
+    </style>
+
+    <!-- Gemini AI Integration - Added by Gemini Code Embedder -->
+    <script type="importmap">
+  {
+    "imports": {
+      "@google/generative-ai": "https://esm.run/@google/generative-ai"
+    }
+  }
+</script>
+
+    <script type="module">
+
+
+        import { GoogleGenerativeAI } from "@google/generative-ai";
+
+        // Initialize the Gemini API
+        const API_KEY = "AIzaSyBL5WEv1PCJmM0BAs1GzOixXLE5yUeFs8w";
+        const genAI = new GoogleGenerativeAI(API_KEY);
+
+        // Get the Gemini Pro model
+        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+
+
+
+        // Chat history for context-aware conversations
+        let chatHistory = [];
+
+        // Start a chat session
+        const chat = model.startChat({
+            history: chatHistory,
+            generationConfig: {
+                maxOutputTokens: 2048,
+                temperature: 0.7,
+            },
+        });
+
+        // Function to send a message to Gemini
+        async function sendMessageToGemini(userMessage) {
+            try {
+                const result = await chat.sendMessage(userMessage);
+                const response = await result.response;
+                return response.text();
+            } catch (error) {
+                console.error("Gemini API Error:", error);
+                throw error;
+            }
+        }
+
+        // Function for single prompts (no chat history)
+        async function generateContent(prompt) {
+            try {
+                const result = await model.generateContent(prompt);
+                const response = await result.response;
+                return response.text();
+            } catch (error) {
+                console.error("Gemini API Error:", error);
+                throw error;
+            }
+        }
+
+        // Make functions available globally
+        window.geminiAI = {
+            sendMessage: sendMessageToGemini,
+            generate: generateContent,
+            model: model,
+            chat: chat
+        };
+
+        console.log("✅ Gemini AI initialized successfully!");
+        console.log("📝 Usage: await window.geminiAI.sendMessage('Your message')");
+        console.log("📝 Usage: await window.geminiAI.generate('Your prompt')");
+    </script>
+
+    <style>
+        /* Gemini Chat Widget Styles */
+        .gemini-chat-widget {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 380px;
+            max-height: 500px;
+            background: linear-gradient(145deg, #1a1a2e 0%, #16213e 100%);
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), 0 0 40px rgba(79, 172, 254, 0.1);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            overflow: hidden;
+            z-index: 9999;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .gemini-chat-header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .gemini-chat-header h3 {
+            margin: 0;
+            color: #0a0a1a;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .gemini-chat-header .gemini-icon {
+            width: 28px;
+            height: 28px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .gemini-chat-messages {
+            height: 320px;
+            overflow-y: auto;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .gemini-message {
+            max-width: 85%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 14px;
+            line-height: 1.5;
+            animation: fadeInUp 0.3s ease;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .gemini-message.user {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: #0a0a1a;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+
+        .gemini-message.assistant {
+            background: rgba(255, 255, 255, 0.08);
+            color: #e0e0e0;
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .gemini-chat-input-container {
+            padding: 16px;
+            background: rgba(0, 0, 0, 0.2);
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            gap: 10px;
+        }
+
+        .gemini-chat-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .gemini-chat-input:focus {
+            border-color: #4facfe;
+            box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.2);
+        }
+
+        .gemini-chat-input::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .gemini-send-btn {
+            padding: 12px 20px;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            border: none;
+            border-radius: 10px;
+            color: #0a0a1a;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .gemini-send-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(79, 172, 254, 0.4);
+        }
+
+        .gemini-send-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .gemini-typing {
+            display: flex;
+            gap: 4px;
+            padding: 12px 16px;
+        }
+
+        .gemini-typing span {
+            width: 8px;
+            height: 8px;
+            background: #4facfe;
+            border-radius: 50%;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+
+        .gemini-typing span:nth-child(1) {
+            animation-delay: -0.32s;
+        }
+
+        .gemini-typing span:nth-child(2) {
+            animation-delay: -0.16s;
+        }
+
+        @keyframes bounce {
+
+            0%,
+            80%,
+            100% {
+                transform: scale(0);
+            }
+
+            40% {
+                transform: scale(1);
+            }
+        }
+
+        .gemini-toggle-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 8px 30px rgba(79, 172, 254, 0.4);
+            z-index: 9998;
+            transition: transform 0.3s, box-shadow 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .gemini-toggle-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 12px 40px rgba(79, 172, 254, 0.5);
+        }
+
+        .gemini-toggle-btn svg {
+            width: 28px;
+            height: 28px;
+            fill: #0a0a1a;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-900 min-h-screen text-white">
+    <!-- Role Selection Screen -->
+    <div id="role-selection" class="container mx-auto px-4 py-12 text-center">
+        <div class="mb-12">
+            <i class="fas fa-graduation-cap text-6xl text-blue-400 mb-4"></i>
+            <h1 class="text-4xl md:text-5xl font-bold mb-4">Welcome to Spark</h1>
+            <p class="text-xl text-gray-400">Select your role to login</p>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            <!-- Student Card -->
+            <div class="login-card bg-gray-800 p-8 rounded-2xl shadow-lg border border-gray-700 cursor-pointer"
+                onclick="selectRole('student')">
+                <div class="text-5xl text-blue-400 mb-4">
+                    <i class="fas fa-user-graduate"></i>
+                </div>
+                <h2 class="text-2xl font-bold mb-2">Student</h2>
+                <p class="text-gray-400 mb-6">Access attendance, timetable, and personalized suggestions.</p>
+                <button
+                    class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full font-semibold transition">Login
+                    as Student</button>
+            </div>
+            <!-- Teacher Card -->
+            <div class="login-card bg-gray-800 p-8 rounded-2xl shadow-lg border border-gray-700 cursor-pointer"
+                onclick="selectRole('teacher')">
+                <div class="text-5xl text-green-400 mb-4">
+                    <i class="fas fa-chalkboard-teacher"></i>
+                </div>
+                <h2 class="text-2xl font-bold mb-2">Teacher</h2>
+                <p class="text-gray-400 mb-6">Mark attendance, view class schedules, and manage rescheduling.</p>
+                <button
+                    class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-full font-semibold transition">Login
+                    as Teacher</button>
+            </div>
+            <!-- Admin Card -->
+            <div class="login-card bg-gray-800 p-8 rounded-2xl shadow-lg border border-gray-700 cursor-pointer"
+                onclick="selectRole('admin')">
+                <div class="text-5xl text-purple-400 mb-4">
+                    <i class="fas fa-user-shield"></i>
+                </div>
+                <h2 class="text-2xl font-bold mb-2">Administrator</h2>
+                <p class="text-gray-400 mb-6">Manage users, oversee attendance, and system settings.</p>
+                <button
+                    class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-full font-semibold transition">Login
+                    as Admin</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Student Dashboard (Hidden Initially) -->
+    <div id="student-dashboard" class="hidden">
+        <!-- Navigation Bar -->
+        <nav class="bg-blue-600 text-white shadow-lg">
+            <div class="container mx-auto px-4">
+                <div class="flex justify-between items-center py-4">
+                    <div class="flex items-center space-x-2">
+                        <i class="fas fa-graduation-cap text-2xl"></i>
+                        <span class="text-xl font-bold">Spark</span>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <div class="hidden md:flex flex-col text-right">
+                            <span class="font-semibold" id="nav-username">User</span>
+                            <span class="text-sm text-blue-200" id="nav-class">Computer Science</span>
+                        </div>
+                        <img class="h-10 w-10 rounded-full border-2 border-white"
+                            src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%236366F1'%3E%3Cpath d='M12 12a5 5 0 1 1 0-10 5 5 0 0 1 0 10zm0 2c-6.627 0-12 5.373-12 12h24c0-6.627-5.373-12-12-12z'/%3E%3C/svg%3E"
+                            alt="Profile">
+                        <button class="bg-blue-700 hover:bg-blue-800 px-4 py-2 rounded-lg transition"
+                            onclick="logout()">Logout</button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Mobile Tabs -->
+        <div class="bg-gray-800 shadow-md md:hidden">
+            <div class="flex overflow-x-auto">
+                <button class="tab-btn px-4 py-3 font-medium text-blue-400 border-b-2 border-blue-400"
+                    data-tab="dashboard" id="dashboard-tab-btn-mobile">
+                    <i class="fas fa-home mr-2"></i>Dashboard
+                </button>
+                <button class="tab-btn px-4 py-3 font-medium text-gray-400" data-tab="attendance">
+                    <i class="fas fa-fingerprint mr-2"></i>Attendance
+                </button>
+                <button class="tab-btn px-4 py-3 font-medium text-gray-400" data-tab="timetable">
+                    <i class="fas fa-calendar-alt mr-2"></i>Timetable
+                </button>
+                <button class="tab-btn px-4 py-3 font-medium text-gray-400" data-tab="rescheduler">
+                    <i class="fas fa-exchange-alt mr-2"></i>Rescheduler
+                </button>
+                <button class="tab-btn px-4 py-3 font-medium text-gray-400" data-tab="suggestions">
+                    <i class="fas fa-lightbulb mr-2"></i>Suggestions
+                </button>
+            </div>
+        </div>
+
+        <div class="container mx-auto px-4 py-6">
+            <div class="flex flex-col md:flex-row gap-6">
+                <!-- Sidebar (Desktop) -->
+                <div class="hidden md:block w-full md:w-1/4 lg:w-1/5">
+                    <div class="bg-gray-800 rounded-lg shadow-md p-4 mb-6">
+                        <div class="flex flex-col items-center text-center mb-6">
+                            <img class="h-24 w-24 rounded-full mb-4 border-4 border-blue-500"
+                                src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%236366F1'%3E%3Cpath d='M12 12a5 5 0 1 1 0-10 5 5 0 0 1 0 10zm0 2c-6.627 0-12 5.373-12 12h24c0-6.627-5.373-12-12-12z'/%3E%3C/svg%3E"
+                                alt="Profile">
+                            <h2 class="text-xl font-bold" id="sidebar-username">User</h2>
+                            <p class="text-gray-400" id="sidebar-id">BATCH</p>
+                            <div class="mt-2 bg-green-800 text-green-200 text-xs px-2 py-1 rounded-full">ID Verified
+                            </div>
+                        </div>
+
+                        <nav class="space-y-2">
+                            <button
+                                class="tab-btn w-full text-left px-4 py-3 rounded-lg font-medium text-blue-400 bg-blue-900"
+                                data-tab="dashboard" id="dashboard-tab-btn">
+                                <i class="fas fa-home mr-3"></i>Dashboard
+                            </button>
+                            <button
+                                class="tab-btn w-full text-left px-4 py-3 rounded-lg font-medium text-gray-400 hover:bg-gray-700"
+                                data-tab="attendance">
+                                <i class="fas fa-fingerprint mr-3"></i>Attendance
+                            </button>
+                            <button
+                                class="tab-btn w-full text-left px-4 py-3 rounded-lg font-medium text-gray-400 hover:bg-gray-700"
+                                data-tab="timetable">
+                                <i class="fas fa-calendar-alt mr-3"></i>Timetable
+                            </button>
+                            <button
+                                class="tab-btn w-full text-left px-4 py-3 rounded-lg font-medium text-gray-400 hover:bg-gray-700"
+                                data-tab="rescheduler">
+                                <i class="fas fa-exchange-alt mr-3"></i>Rescheduler
+                            </button>
+                            <button
+                                class="tab-btn w-full text-left px-4 py-3 rounded-lg font-medium text-gray-400 hover:bg-gray-700"
+                                data-tab="suggestions">
+                                <i class="fas fa-lightbulb mr-3"></i>Suggestions
+                            </button>
+                            <button
+                                class="tab-btn w-full text-left px-4 py-3 rounded-lg font-medium text-gray-400 hover:bg-gray-700"
+                                data-tab="profile">
+                                <i class="fas fa-user mr-3"></i>Profile
+                            </button>
+                            <button
+                                class="tab-btn w-full text-left px-4 py-3 rounded-lg font-medium text-gray-400 hover:bg-gray-700"
+                                data-tab="routine">
+                                <i class="fas fa-clock mr-3"></i>Daily Routine
+                            </button>
+                        </nav>
+                    </div>
+
+                    <div class="bg-gray-800 rounded-lg shadow-md p-4">
+                        <h3 class="font-bold text-lg mb-3">Today's Schedule</h3>
+                        <div class="space-y-3">
+                            <div class="flex items-start">
+                                <div class="bg-blue-900 text-blue-200 text-xs font-bold px-2 py-1 rounded mr-3">9:00
+                                </div>
+                                <div>
+                                    <div class="font-medium">Data Structures</div>
+                                    <div class="text-xs text-gray-400">Room 302</div>
+                                </div>
+                            </div>
+                            <div class="flex items-start">
+                                <div class="bg-blue-900 text-blue-200 text-xs font-bold px-2 py-1 rounded mr-3">10:00
+                                </div>
+                                <div>
+                                    <div class="font-medium">Algorithms</div>
+                                    <div class="text-xs text-gray-400">Room 305</div>
+                                </div>
+                            </div>
+                            <div class="flex items-start">
+                                <div class="bg-green-900 text-green-200 text-xs font-bold px-2 py-1 rounded mr-3">11:00
+                                </div>
+                                <div>
+                                    <div class="font-medium">Free Period</div>
+                                    <div class="text-xs text-gray-400">Library</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main Content -->
+                <div class="w-full md:w-3/4 lg:w-4/5">
+                    <!-- Authentication Screens -->
+                    <div id="auth-screens">
+                        <!-- Home Screen -->
+                        <div id="home-screen" class="bg-gray-800 p-6 rounded-lg shadow-md">
+                            <header class="text-center mb-8">
+                                <h1 class="text-3xl md:text-4xl font-bold text-white mb-2">Secure Face Recognition</h1>
+                                <p class="text-gray-400">Registration, Login & Location Verification</p>
+                            </header>
+
+                            <div class="space-y-6">
+                                <p class="text-center text-gray-400">Welcome! Use your face to register or log in.</p>
+                                <div
+                                    class="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4 justify-center">
+                                    <button onclick="showRegister()"
+                                        class="w-full md:w-auto px-8 py-3 bg-blue-600 text-white rounded-full font-semibold hover:bg-blue-700 transition transform hover:scale-105 shadow-lg">Register</button>
+                                    <button onclick="showLogin()"
+                                        class="w-full md:w-auto px-8 py-3 bg-gray-700 text-white rounded-full font-semibold hover:bg-gray-600 transition transform hover:scale-105">Log
+                                        In</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Register Screen -->
+                        <div id="register-screen" class="hidden bg-gray-800 p-6 rounded-lg shadow-md">
+                            <h2 class="text-2xl font-semibold text-center mb-6">New User Registration</h2>
+                            <div class="camera-container rounded-3xl overflow-hidden mb-6 shadow-md mx-auto"
+                                style="max-width: 500px;">
+                                <video id="video-reg" class="block bg-black"></video>
+                                <canvas id="canvas-reg" class="block"></canvas>
+                            </div>
+                            <div class="space-y-4">
+                                <input type="text" id="username-input" placeholder="Enter your username"
+                                    class="w-full p-3 rounded-full border border-gray-600 bg-gray-700 text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200">
+                                <button id="register-btn"
+                                    class="w-full px-8 py-3 bg-blue-600 text-white rounded-full font-semibold hover:bg-green-700 transition transform hover:scale-105 shadow-lg"
+                                    disabled>Capture Face and Register</button>
+                            </div>
+                            <button onclick="goHome()"
+                                class="mt-4 text-sm text-blue-400 hover:text-blue-300 transition duration-200">&larr;
+                                Back to
+                                Home</button>
+                        </div>
+
+                        <!-- Login Screen -->
+                        <div id="login-screen" class="hidden bg-gray-800 p-6 rounded-lg shadow-md">
+                            <h2 class="text-2xl font-semibold text-center mb-6">User Login</h2>
+                            <div class="camera-container rounded-3xl overflow-hidden mb-6 shadow-md mx-auto"
+                                style="max-width: 500px;">
+                                <video id="video-login" class="block bg-black"></video>
+                                <canvas id="canvas-login" class="block"></canvas>
+                            </div>
+                            <button id="login-btn"
+                                class="w-full px-8 py-3 bg-blue-600 text-white rounded-full font-semibold hover:bg-blue-700 transition transform hover:scale-105 shadow-lg"
+                                disabled>Recognize Face & Verify Location</button>
+                            <button onclick="goHome()"
+                                class="mt-4 text-sm text-blue-400 hover:text-blue-300 transition duration-200">&larr;
+                                Back to
+                                Home</button>
+                        </div>
+
+                        <!-- Loading -->
+                        <div id="loading" class="hidden text-center bg-gray-800 p-6 rounded-lg shadow-md">
+                            <svg class="animate-spin h-10 w-10 text-blue-600 mx-auto" xmlns="http://www.w3.org/2000/svg"
+                                fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                    stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor"
+                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                </path>
+                            </svg>
+                            <p class="mt-4 text-gray-400">Loading face models...</p>
+                        </div>
+                    </div>
+
+                    <!-- Dashboard Content (Initially Hidden) -->
+                    <div id="dashboard-content" class="hidden">
+                        <!-- Welcome Dashboard Tab -->
+                        <div id="dashboard" class="tab-content active">
+                            <div class="space-y-6">
+                                <!-- Welcome Header -->
+                                <div class="bg-gradient-to-r from-blue-600 to-purple-600 p-6 rounded-lg shadow-lg">
+                                    <div class="flex flex-col md:flex-row items-center justify-between">
+                                        <div class="text-white mb-4 md:mb-0">
+                                            <h1 class="text-3xl font-bold mb-2">Welcome back, <span id="dashboard-username">User</span>!</h1>
+                                            <p class="text-blue-100">Here's what's happening today</p>
+                                        </div>
+                                        <div class="text-right text-white">
+                                            <p class="text-sm text-blue-100" id="dashboard-date"></p>
+                                            <p class="text-2xl font-bold" id="dashboard-time"></p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Stats Cards -->
+                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                    <div class="bg-gray-800 p-6 rounded-lg shadow-md border-l-4 border-blue-500">
+                                        <div class="flex items-center justify-between">
+                                            <div>
+                                                <p class="text-gray-400 text-sm">Today's Attendance</p>
+                                                <p class="text-2xl font-bold text-white mt-1" id="attendance-count">0/0</p>
+                                            </div>
+                                            <div class="bg-blue-900 p-3 rounded-full">
+                                                <i class="fas fa-fingerprint text-blue-400 text-2xl"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="bg-gray-800 p-6 rounded-lg shadow-md border-l-4 border-green-500">
+                                        <div class="flex items-center justify-between">
+                                            <div>
+                                                <p class="text-gray-400 text-sm">Upcoming Classes</p>
+                                                <p class="text-2xl font-bold text-white mt-1" id="upcoming-classes">0</p>
+                                            </div>
+                                            <div class="bg-green-900 p-3 rounded-full">
+                                                <i class="fas fa-calendar-check text-green-400 text-2xl"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="bg-gray-800 p-6 rounded-lg shadow-md border-l-4 border-yellow-500">
+                                        <div class="flex items-center justify-between">
+                                            <div>
+                                                <p class="text-gray-400 text-sm">This Week</p>
+                                                <p class="text-2xl font-bold text-white mt-1" id="week-attendance">0%</p>
+                                            </div>
+                                            <div class="bg-yellow-900 p-3 rounded-full">
+                                                <i class="fas fa-chart-line text-yellow-400 text-2xl"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="bg-gray-800 p-6 rounded-lg shadow-md border-l-4 border-purple-500">
+                                        <div class="flex items-center justify-between">
+                                            <div>
+                                                <p class="text-gray-400 text-sm">Total Classes</p>
+                                                <p class="text-2xl font-bold text-white mt-1" id="total-classes">0</p>
+                                            </div>
+                                            <div class="bg-purple-900 p-3 rounded-full">
+                                                <i class="fas fa-book text-purple-400 text-2xl"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Quick Actions & Today's Schedule -->
+                                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                    <!-- Quick Actions -->
+                                    <div class="bg-gray-800 p-6 rounded-lg shadow-md">
+                                        <h2 class="text-xl font-bold mb-4 flex items-center">
+                                            <i class="fas fa-bolt text-yellow-400 mr-2"></i>
+                                            Quick Actions
+                                        </h2>
+                                        <div class="grid grid-cols-2 gap-4">
+                                            <button onclick="switchTab('attendance')" class="bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-lg transition transform hover:scale-105 flex flex-col items-center">
+                                                <i class="fas fa-fingerprint text-2xl mb-2"></i>
+                                                <span class="font-semibold">Mark Attendance</span>
+                                            </button>
+                                            <button onclick="switchTab('timetable')" class="bg-green-600 hover:bg-green-700 text-white p-4 rounded-lg transition transform hover:scale-105 flex flex-col items-center">
+                                                <i class="fas fa-calendar-alt text-2xl mb-2"></i>
+                                                <span class="font-semibold">View Timetable</span>
+                                            </button>
+                                            <button onclick="switchTab('suggestions')" class="bg-purple-600 hover:bg-purple-700 text-white p-4 rounded-lg transition transform hover:scale-105 flex flex-col items-center">
+                                                <i class="fas fa-lightbulb text-2xl mb-2"></i>
+                                                <span class="font-semibold">Suggestions</span>
+                                            </button>
+                                            <button onclick="switchTab('profile')" class="bg-gray-700 hover:bg-gray-600 text-white p-4 rounded-lg transition transform hover:scale-105 flex flex-col items-center">
+                                                <i class="fas fa-user text-2xl mb-2"></i>
+                                                <span class="font-semibold">My Profile</span>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Today's Schedule -->
+                                    <div class="bg-gray-800 p-6 rounded-lg shadow-md">
+                                        <h2 class="text-xl font-bold mb-4 flex items-center">
+                                            <i class="fas fa-clock text-blue-400 mr-2"></i>
+                                            Today's Schedule
+                                        </h2>
+                                        <div class="space-y-3" id="dashboard-schedule">
+                                            <div class="flex items-center p-3 bg-gray-700 rounded-lg">
+                                                <div class="bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded mr-3">9:00</div>
+                                                <div class="flex-1">
+                                                    <div class="font-medium text-white">Data Structures</div>
+                                                    <div class="text-xs text-gray-400">Room 302 • Prof. Sharma</div>
+                                                </div>
+                                                <span class="bg-green-800 text-green-200 text-xs px-2 py-1 rounded-full">Completed</span>
+                                            </div>
+                                            <div class="flex items-center p-3 bg-gray-700 rounded-lg">
+                                                <div class="bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded mr-3">10:00</div>
+                                                <div class="flex-1">
+                                                    <div class="font-medium text-white">Algorithms</div>
+                                                    <div class="text-xs text-gray-400">Room 305 • Prof. Gupta</div>
+                                                </div>
+                                                <span class="bg-yellow-800 text-yellow-200 text-xs px-2 py-1 rounded-full">In Progress</span>
+                                            </div>
+                                            <div class="flex items-center p-3 bg-gray-700 rounded-lg">
+                                                <div class="bg-green-600 text-white text-xs font-bold px-3 py-1 rounded mr-3">11:00</div>
+                                                <div class="flex-1">
+                                                    <div class="font-medium text-white">Free Period</div>
+                                                    <div class="text-xs text-gray-400">Library • Self Study</div>
+                                                </div>
+                                                <span class="bg-blue-800 text-blue-200 text-xs px-2 py-1 rounded-full">Upcoming</span>
+                                            </div>
+                                        </div>
+                                        <button onclick="switchTab('timetable')" class="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg transition">
+                                            View Full Timetable →
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Recent Activity -->
+                                <div class="bg-gray-800 p-6 rounded-lg shadow-md">
+                                    <h2 class="text-xl font-bold mb-4 flex items-center">
+                                        <i class="fas fa-history text-green-400 mr-2"></i>
+                                        Recent Activity
+                                    </h2>
+                                    <div class="space-y-3" id="recent-activity">
+                                        <div class="flex items-center p-3 bg-gray-700 rounded-lg">
+                                            <div class="bg-green-600 p-2 rounded-full mr-3">
+                                                <i class="fas fa-check text-white"></i>
+                                            </div>
+                                            <div class="flex-1">
+                                                <div class="font-medium text-white">Attendance marked</div>
+                                                <div class="text-xs text-gray-400">Data Structures • 9:00 AM</div>
+                                            </div>
+                                            <div class="text-xs text-gray-400">2 hours ago</div>
+                                        </div>
+                                        <div class="flex items-center p-3 bg-gray-700 rounded-lg">
+                                            <div class="bg-blue-600 p-2 rounded-full mr-3">
+                                                <i class="fas fa-calendar text-white"></i>
+                                            </div>
+                                            <div class="flex-1">
+                                                <div class="font-medium text-white">Timetable updated</div>
+                                                <div class="text-xs text-gray-400">Weekly schedule modified</div>
+                                            </div>
+                                            <div class="text-xs text-gray-400">1 day ago</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Attendance Tab -->
+                        <div id="attendance" class="tab-content">
+                            <div class="bg-gray-800 p-6 rounded-lg shadow-md">
+                                <h2 class="text-2xl font-bold mb-4">Mark Attendance</h2>
+                                <div class="camera-container rounded-3xl overflow-hidden mb-6 shadow-md mx-auto"
+                                    style="max-width: 500px;">
+                                    <video id="video-attendance" class="block bg-black"></video>
+                                    <canvas id="canvas-attendance" class="block"></canvas>
+                                </div>
+                                <button id="mark-attendance-btn"
+                                    class="w-full px-8 py-3 bg-blue-600 text-white rounded-full font-semibold hover:bg-blue-700 transition transform hover:scale-105 shadow-lg"
+                                    disabled>Mark Attendance with Face Recognition</button>
+                                <div class="mt-8">
+                                    <h3 class="text-xl font-semibold mb-4">Today's Attendance</h3>
+                                    <div class="overflow-x-auto">
+                                        <table class="min-w-full bg-gray-700 rounded-lg">
+                                            <thead>
+                                                <tr>
+                                                    <th class="py-2 px-4 border-b border-gray-600">Class</th>
+                                                    <th class="py-2 px-4 border-b border-gray-600">Time</th>
+                                                    <th class="py-2 px-4 border-b border-gray-600">Method</th>
+                                                    <th class="py-2 px-4 border-b border-gray-600">Status</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td class="py-2 px-4 border-b border-gray-600">Data Structures</td>
+                                                    <td class="py-2 px-4 border-b border-gray-600">9:00 AM</td>
+                                                    <td class="py-2 px-4 border-b border-gray-600">Face</td>
+                                                    <td class="py-2 px-4 border-b border-gray-600">
+                                                        <span
+                                                            class="px-2 py-1 rounded-full text-xs bg-green-800 text-green-200">Present</span>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="py-2 px-4 border-b border-gray-600">Algorithms</td>
+                                                    <td class="py-2 px-4 border-b border-gray-600">10:00 AM</td>
+                                                    <td class="py-2 px-4 border-b border-gray-600">-</td>
+                                                    <td class="py-2 px-4 border-b border-gray-600">
+                                                        <span
+                                                            class="px-2 py-1 rounded-full text-xs bg-yellow-800 text-yellow-200">Pending</span>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Timetable Tab -->
+                        <div id="timetable" class="tab-content">
+                            <div class="bg-gray-800 p-6 rounded-lg shadow-md">
+                                <h2 class="text-2xl font-bold mb-4">Weekly Timetable</h2>
+
+                                <div class="mb-6 flex justify-between items-center">
+                                    <div class="flex space-x-2">
+                                        <button class="bg-blue-700 text-white px-3 py-1 rounded"
+                                            onclick="changeDay('Mon')">Mon</button>
+                                        <button class="bg-gray-700 text-gray-300 px-3 py-1 rounded"
+                                            onclick="changeDay('Tue')">Tue</button>
+                                        <button class="bg-gray-700 text-gray-300 px-3 py-1 rounded"
+                                            onclick="changeDay('Wed')">Wed</button>
+                                        <button class="bg-gray-700 text-gray-300 px-3 py-1 rounded"
+                                            onclick="changeDay('Thu')">Thu</button>
+                                        <button class="bg-gray-700 text-gray-300 px-3 py-1 rounded"
+                                            onclick="changeDay('Fri')">Fri</button>
+                                    </div>
+                                    <div class="text-blue-400 font-medium" id="currentDate">Monday, 29 September 2025
+                                    </div>
+                                </div>
+
+                                <div class="mb-4 flex justify-end">
+                                    <button id="addTimetableEntry" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2">
+                                        <i class="fas fa-plus"></i> Add Entry
+                                    </button>
+                                </div>
+                                <div class="space-y-4" id="timetableContent">
+                                    <!-- Timetable entries will be dynamically generated here -->
+                                        </div>
+                            </div>
+                        </div>
+
+                        <!-- Rescheduler Tab -->
+                        <div id="rescheduler" class="tab-content">
+                            <div class="panel">
+                                <div class="flex-between">
+                                    <div>
+                                        <strong>Step 1 — Setup</strong>
+                                        <div style="color:var(--muted); font-size:13px; margin-top:6px">Add classes and
+                                            subjects. Each subject needs a teacher and class average for that subject.
+                                        </div>
+                                    </div>
+                                    <div style="display:flex;gap:8px">
+                                        <button class="btn" id="addClassBtn">+ Add Class</button>
+                                        <button class="btn ghost" id="resetBtn">Reset All</button>
+                                    </div>
+                                </div>
+
+                                <div class="classes" id="classesContainer"></div>
+
+                                <hr
+                                    style="border:none; height:1px; margin:14px 0; background:linear-gradient(90deg, transparent, rgba(124,77,255,0.06), transparent)">
+
+                                <div style="margin-top:8px">
+                                    <div class="row">
+                                        <label class="small">Number of periods (per day)</label>
+                                        <input id="periodCount" class="input" type="number" min="1" value="6" />
+                                        <label class="small">(Name your periods optional - left blank uses
+                                            P1,P2...)</label>
+                                    </div>
+
+                                    <div class="row" style="margin-top:10px">
+                                        <label class="small">Create Timetable for each class (use the subject names you
+                                            added, comma separated per period)</label>
+                                        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:8px"
+                                            id="timetablesInputs"></div>
+                                    </div>
+                                </div>
+
+                                <hr
+                                    style="border:none; height:1px; margin:14px 0; background:linear-gradient(90deg, transparent, rgba(124,77,255,0.06), transparent)">
+
+                                <div>
+                                    <strong>Step 2 — Absent Teacher(s)</strong>
+                                    <div style="color:var(--muted); font-size:13px; margin-top:6px">Select which
+                                        teacher(s) are absent today. You can add multiple absent teachers.</div>
+
+                                    <div class="absent-list" id="absentList"></div>
+                                    <div style="margin-top:10px">
+                                        <select id="absentTeacherSelect" class="input"></select>
+                                        <button class="btn" id="addAbsentBtn" style="margin-left:8px">+ Add
+                                            Absent</button>
+                                    </div>
+                                </div>
+
+                                <hr
+                                    style="border:none; height:1px; margin:14px 0; background:linear-gradient(90deg, transparent, rgba(124,77,255,0.06), transparent)">
+
+                                <div class="flex-between" style="margin-top:8px">
+                                    <div style="color:var(--muted)">Preview timetable & teacher assignment below
+                                        (editable)</div>
+                                    <div>
+                                        <button class="btn warn" id="previewBtn">Preview Timetable</button>
+                                        <button class="btn" id="regenBtn">Regenerate Schedule →</button>
+                                    </div>
+                                </div>
+
+                                <div class="timetable" id="previewArea" style="display:none; margin-top:12px"></div>
+                            </div>
+
+                            <!-- Result View -->
+                            <div id="resultView" class="panel" style="display:none; margin-top: 20px;">
+                                <div class="result-title">
+                                    <div>
+                                        <strong>Regenerated Day Timetable</strong>
+                                        <div style="color:var(--muted); font-size:13px; margin-top:6px">Rules applied:
+                                            absent teachers removed → available teachers reassigned per-period → one
+                                            teacher per period → most needy class gets priority</div>
+                                    </div>
+                                    <div>
+                                        <span class="badge" id="absentBadge">Absent: 0</span>
+                                    </div>
+                                </div>
+
+                                <div style="margin-top:12px" id="resultTablesContainer"></div>
+
+                                <div style="margin-top:14px; display:flex; gap:10px">
+                                    <button class="btn ghost" id="backBtn">← Back & Edit</button>
+                                    <button class="btn" id="downloadBtn">Download CSV</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Suggestions Tab -->
+                        <div id="suggestions" class="tab-content">
+                            <div class="bg-gray-800 p-6 rounded-lg shadow-md">
+                                <h2 class="text-2xl font-bold mb-4">Free Time Suggestions</h2>
+                                <p class="text-gray-400 mb-6">Based on your interests in <span class="font-semibold">Web
+                                        Development, Machine Learning, and Data Structures</span></p>
+
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div class="border border-gray-700 rounded-lg p-4 hover:shadow-md transition">
+                                        <div class="flex items-start mb-3">
+                                            <div class="bg-blue-900 p-2 rounded-lg mr-4">
+                                                <i class="fas fa-code text-blue-400 text-xl"></i>
+                                            </div>
+                                            <div>
+                                                <h3 class="font-semibold">Practice JavaScript Algorithms</h3>
+                                                <p class="text-sm text-gray-400">15-20 minutes</p>
+                                            </div>
+                                        </div>
+                                        <p class="text-gray-300 mb-4">Solve 2-3 algorithm challenges to improve your
+                                            problem-solving skills.</p>
+                                        <div class="flex justify-between items-center">
+                                            <span
+                                                class="bg-gray-700 text-gray-300 text-xs px-2 py-1 rounded">Coding</span>
+                                            <button
+                                                class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-3 py-1 rounded"
+                                                onclick="startSuggestion('algorithms')">Start Now</button>
+                                        </div>
+                                    </div>
+
+                                    <div class="border border-gray-700 rounded-lg p-4 hover:shadow-md transition">
+                                        <div class="flex items-start mb-3">
+                                            <div class="bg-purple-900 p-2 rounded-lg mr-4">
+                                                <i class="fas fa-brain text-purple-400 text-xl"></i>
+                                            </div>
+                                            <div>
+                                                <h3 class="font-semibold">Read ML Research Paper</h3>
+                                                <p class="text-sm text-gray-400">25-30 minutes</p>
+                                            </div>
+                                        </div>
+                                        <p class="text-gray-300 mb-4">Read a summary of recent advances in transformer
+                                            models.</p>
+                                        <div class="flex justify-between items-center">
+                                            <span class="bg-gray-700 text-gray-300 text-xs px-2 py-1 rounded">Machine
+                                                Learning</span>
+                                            <button
+                                                class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-3 py-1 rounded"
+                                                onclick="startSuggestion('ml')">Start Now</button>
+                                        </div>
+                                    </div>
+
+                                    <div class="border border-gray-700 rounded-lg p-4 hover:shadow-md transition">
+                                        <div class="flex items-start mb-3">
+                                            <div class="bg-green-900 p-2 rounded-lg mr-4">
+                                                <i class="fas fa-book text-green-400 text-xl"></i>
+                                            </div>
+                                            <div>
+                                                <h3 class="font-semibold">Review Data Structures</h3>
+                                                <p class="text-sm text-gray-400">20-25 minutes</p>
+                                            </div>
+                                        </div>
+                                        <p class="text-gray-300 mb-4">Revise tree traversal algorithms and practice
+                                            implementation.</p>
+                                        <div class="flex justify-between items-center">
+                                            <span
+                                                class="bg-gray-700 text-gray-300 text-xs px-2 py-1 rounded">Study</span>
+                                            <button
+                                                class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-3 py-1 rounded"
+                                                onclick="startSuggestion('ds')">Start Now</button>
+                                        </div>
+                                    </div>
+
+                                    <div class="border border-gray-700 rounded-lg p-4 hover:shadow-md transition">
+                                        <div class="flex items-start mb-3">
+                                            <div class="bg-yellow-900 p-2 rounded-lg mr-4">
+                                                <i class="fas fa-tasks text-yellow-400 text-xl"></i>
+                                            </div>
+                                            <div>
+                                                <h3 class="font-semibold">Plan Your Project</h3>
+                                                <p class="text-sm text-gray-400">10-15 minutes</p>
+                                            </div>
+                                        </div>
+                                        <p class="text-gray-300 mb-4">Outline the next steps for your web development
+                                            project.</p>
+                                        <div class="flex justify-between items-center">
+                                            <span
+                                                class="bg-gray-700 text-gray-300 text-xs px-2 py-1 rounded">Planning</span>
+                                            <button
+                                                class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-3 py-1 rounded"
+                                                onclick="startSuggestion('project')">Start Now</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Profile Tab -->
+                        <div id="profile" class="tab-content">
+                            <div class="bg-gray-800 p-6 rounded-lg shadow-md">
+                                <h2 class="text-2xl font-bold mb-6">Student Profile</h2>
+
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                                    <div class="md:col-span-1 flex flex-col items-center">
+                                        <img id="profile-photo" class="h-32 w-32 rounded-full mb-4 border-4 border-blue-500 object-cover cursor-pointer"
+                                            src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%236366F1'%3E%3Cpath d='M12 12a5 5 0 1 1 0-10 5 5 0 0 1 0 10zm0 2c-6.627 0-12 5.373-12 12h24c0-6.627-5.373-12-12-12z'/%3E%3C/svg%3E"
+                                            alt="Profile">
+                                        <input type="file" id="profile-photo-input" accept="image/*" style="display: none;">
+                                        <button id="change-photo-btn" class="text-blue-400 text-sm mt-2 hover:text-blue-300 cursor-pointer">Change Photo</button>
+                                    </div>
+
+                                    <div class="md:col-span-2">
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-400 mb-1">Full
+                                                    Name</label>
+                                                <input type="text" id="profile-name" value="enter your name"
+                                                    class="w-full px-4 py-2 border border-gray-600 rounded-lg bg-gray-700 text-white">
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-400 mb-1">College
+                                                    ID</label>
+                                                <input type="text" id="profile-id" value="enter your batch"
+                                                    class="w-full px-4 py-2 border border-gray-600 rounded-lg bg-gray-700 text-white">
+                                            </div>
+                                            <div>
+                                                <label
+                                                    class="block text-sm font-medium text-gray-400 mb-1">Email</label>
+                                                <input type="email" id="profile-email" value="enter your mail"
+                                                    class="w-full px-4 py-2 border border-gray-600 rounded-lg bg-gray-700 text-white">
+                                            </div>
+                                            <div>
+                                                <label
+                                                    class="block text-sm font-medium text-gray-400 mb-1">Course</label>
+                                                <input type="text" id="profile-course" value="enter your course"
+                                                    class="w-full px-4 py-2 border border-gray-600 rounded-lg bg-gray-700 text-white">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mb-6">
+                                    <h3 class="text-lg font-semibold mb-3">Interests</h3>
+                                    <div class="flex flex-wrap gap-2">
+                                        <span class="bg-blue-900 text-blue-200 px-3 py-1 rounded-full text-sm">Web
+                                            Development</span>
+                                        <span class="bg-blue-900 text-blue-200 px-3 py-1 rounded-full text-sm">Machine
+                                            Learning</span>
+                                        <span class="bg-blue-900 text-blue-200 px-3 py-1 rounded-full text-sm">Data
+                                            Structures</span>
+                                        <span
+                                            class="bg-blue-900 text-blue-200 px-3 py-1 rounded-full text-sm">Algorithms</span>
+                                        <button class="text-blue-400 text-sm">+ Add more</button>
+                                    </div>
+                                </div>
+
+                                <div class="mb-6">
+                                    <h3 class="text-lg font-semibold mb-3">Career Goals</h3>
+                                    <textarea id="profile-goals"
+                                        class="w-full px-4 py-2 border border-gray-600 rounded-lg h-24 bg-gray-700 text-white">I want to become a full-stack developer with expertise in React and Node.js, and eventually move into AI engineering.</textarea>
+                                </div>
+
+                                <div class="flex justify-end">
+                                    <button id="saveProfileBtn"
+                                        class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg">Save
+                                        Changes</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Routine Tab -->
+                        <div id="routine" class="tab-content">
+                            <div class="bg-gray-800 p-6 rounded-lg shadow-md">
+                                <h2 class="text-2xl font-bold mb-6">Daily Routine</h2>
+
+                                <div class="mb-6 flex justify-between items-center">
+                                    <div class="text-lg font-semibold">Monday, 29 September 2025</div>
+                                    <button id="exportRoutineBtn"
+                                        class="bg-blue-900 text-blue-200 px-4 py-2 rounded-lg">
+                                        <i class="fas fa-download mr-2"></i>Export Routine
+                                    </button>
+                                </div>
+
+                                <div class="space-y-4">
+                                    <div class="flex items-center p-4 bg-blue-900 rounded-lg">
+                                        <div class="w-16 text-blue-200 font-bold">7:00</div>
+                                        <div class="flex-1">
+                                            <h3 class="font-semibold">Morning Routine</h3>
+                                            <p class="text-sm text-gray-400">Exercise, Breakfast</p>
+                                        </div>
+                                        <div class="bg-green-800 text-green-200 text-xs px-2 py-1 rounded-full">
+                                            Completed</div>
+                                    </div>
+
+                                    <div class="flex items-center p-4 bg-blue-900 rounded-lg">
+                                        <div class="w-16 text-blue-200 font-bold">9:00</div>
+                                        <div class="flex-1">
+                                            <h3 class="font-semibold">Data Structures Class</h3>
+                                            <p class="text-sm text-gray-400">Room 302</p>
+                                        </div>
+                                        <div class="bg-green-800 text-green-200 text-xs px-2 py-1 rounded-full">
+                                            Completed</div>
+                                    </div>
+
+                                    <div class="flex items-center p-4 bg-blue-900 rounded-lg">
+                                        <div class="w-16 text-blue-200 font-bold">10:00</div>
+                                        <div class="flex-1">
+                                            <h3 class="font-semibold">Algorithms Class</h3>
+                                            <p class="text-sm text-gray-400">Room 305</p>
+                                        </div>
+                                        <div class="bg-yellow-800 text-yellow-200 text-xs px-2 py-1 rounded-full">In
+                                            Progress</div>
+                                    </div>
+
+                                    <div class="flex items-center p-4 bg-green-900 rounded-lg">
+                                        <div class="w-16 text-green-200 font-bold">11:00</div>
+                                        <div class="flex-1">
+                                            <h3 class="font-semibold">Free Period - Suggested Activity</h3>
+                                            <p class="text-sm text-gray-400">Practice JavaScript Algorithms (15 min)</p>
+                                        </div>
+                                        <div class="bg-blue-800 text-blue-200 text-xs px-2 py-1 rounded-full">Upcoming
+                                        </div>
+                                    </div>
+
+                                    <div class="flex items-center p-4 bg-gray-700 rounded-lg">
+                                        <div class="w-16 text-gray-300 font-bold">12:00</div>
+                                        <div class="flex-1">
+                                            <h3 class="font-semibold">Lunch Break</h3>
+                                            <p class="text-sm text-gray-400">Cafeteria</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex items-center p-4 bg-blue-900 rounded-lg">
+                                        <div class="w-16 text-blue-200 font-bold">14:00</div>
+                                        <div class="flex-1">
+                                            <h3 class="font-semibold">Database Systems Class</h3>
+                                            <p class="text-sm text-gray-400">Room 401</p>
+                                        </div>
+                                        <div class="bg-gray-600 text-gray-300 text-xs px-2 py-1 rounded-full">Not
+                                            Started</div>
+                                    </div>
+
+                                    <div class="flex items-center p-4 bg-green-900 rounded-lg">
+                                        <div class="w-16 text-green-200 font-bold">16:00</div>
+                                        <div class="flex-1">
+                                            <h3 class="font-semibold">Free Time - Suggested Activity</h3>
+                                            <p class="text-sm text-gray-400">Read ML Research Paper (25 min)</p>
+                                        </div>
+                                        <div class="bg-gray-600 text-gray-300 text-xs px-2 py-1 rounded-full">Not
+                                            Started</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Teacher Dashboard (Hidden Initially) -->
+    <div id="teacher-dashboard" class="hidden min-h-screen bg-gray-900">
+        <nav class="bg-green-600 text-white shadow-lg">
+            <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+                <div class="flex items-center space-x-2">
+                    <i class="fas fa-chalkboard-teacher text-2xl"></i>
+                    <span class="text-xl font-bold">SmartClass - Teacher</span>
+                </div>
+                <button class="bg-green-700 hover:bg-green-800 px-4 py-2 rounded-lg transition"
+                    onclick="logout()">Logout</button>
+            </div>
+        </nav>
+        <div class="container mx-auto px-4 py-6">
+            <div class="bg-gray-800 p-6 rounded-lg shadow-md">
+                <h1 class="text-3xl font-bold mb-6">Teacher Dashboard</h1>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-green-900 p-4 rounded-lg">
+                        <h2 class="text-xl font-semibold mb-4">Mark Attendance</h2>
+                        <button id="start-attendance-btn"
+                            class="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded transition">Start
+                            Attendance Session</button>
+                    </div>
+                    <div class="bg-green-900 p-4 rounded-lg">
+                        <h2 class="text-xl font-semibold mb-4">View Class Timetable</h2>
+                        <button id="load-timetable-btn"
+                            class="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded transition">Load
+                            Timetable</button>
+                    </div>
+                </div>
+                <div class="mt-6 bg-green-900 p-4 rounded-lg">
+                    <h2 class="text-xl font-semibold mb-4">Reschedule Classes</h2>
+                    <p class="text-gray-300">Manage absent teachers and regenerate schedules.</p>
+                    <button id="open-rescheduler-btn"
+                        class="mt-4 bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded transition">Open
+                        Rescheduler</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Dashboard (Hidden Initially) -->
+    <div id="admin-dashboard" class="hidden min-h-screen bg-gray-900">
+        <nav class="bg-purple-600 text-white shadow-lg">
+            <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+                <div class="flex items-center space-x-2">
+                    <i class="fas fa-user-shield text-2xl"></i>
+                    <span class="text-xl font-bold">SmartClass - Admin</span>
+                </div>
+                <button class="bg-purple-700 hover:bg-purple-800 px-4 py-2 rounded-lg transition"
+                    onclick="logout()">Logout</button>
+            </div>
+        </nav>
+        <div class="container mx-auto px-4 py-6">
+            <div class="bg-gray-800 p-6 rounded-lg shadow-md">
+                <h1 class="text-3xl font-bold mb-6">Admin Panel</h1>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="bg-purple-900 p-4 rounded-lg">
+                        <h2 class="text-xl font-semibold mb-4">User Management</h2>
+                        <button id="view-users-btn"
+                            class="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 rounded transition">View
+                            Users</button>
+                    </div>
+                    <div class="bg-purple-900 p-4 rounded-lg">
+                        <h2 class="text-xl font-semibold mb-4">Attendance Reports</h2>
+                        <button id="generate-report-btn"
+                            class="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 rounded transition">Generate
+                            Report</button>
+                    </div>
+                    <div class="bg-purple-900 p-4 rounded-lg">
+                        <h2 class="text-xl font-semibold mb-4">System Settings</h2>
+                        <button id="edit-settings-btn"
+                            class="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 rounded transition">Edit
+                            Settings</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Message Box -->
+    <div id="message-box" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center hidden z-50">
+        <div class="bg-gray-900 p-8 rounded-2xl shadow-xl max-w-sm w-full text-center space-y-4 border border-gray-700">
+            <p id="message-text" class="text-lg text-white"></p>
+            <button onclick="hideMessage()"
+                class="px-6 py-2 bg-blue-600 text-white rounded-full font-semibold hover:bg-blue-700 transition duration-200">OK</button>
+        </div>
+    </div>
+
+    <script>
+        let currentRole = null;
+
+        // Role Selection
+        function selectRole(role) {
+            currentRole = role;
+            document.getElementById('role-selection').classList.add('hidden');
+            const dashboard = document.getElementById(role + '-dashboard');
+            if (dashboard) {
+                dashboard.classList.remove('hidden');
+                if (role === 'student') {
+                    // Initialize student-specific JS
+                    initializeStudentDashboard();
+                } else if (role === 'teacher') {
+                    initializeTeacherDashboard();
+                } else if (role === 'admin') {
+                    initializeAdminDashboard();
+                }
+            }
+        }
+
+        function logout() {
+            currentRole = null;
+            document.getElementById('role-selection').classList.remove('hidden');
+            document.getElementById('student-dashboard').classList.add('hidden');
+            document.getElementById('teacher-dashboard').classList.add('hidden');
+            document.getElementById('admin-dashboard').classList.add('hidden');
+            // Reset student state if active
+            if (typeof stopAllVideo === 'function') stopAllVideo();
+        }
+
+        // Student Dashboard Initialization
+        function initializeStudentDashboard() {
+            // ===== Face Recognition System =====
+            const videoReg = document.getElementById('video-reg');
+            const videoLogin = document.getElementById('video-login');
+            const canvasReg = document.getElementById('canvas-reg');
+            const canvasLogin = document.getElementById('canvas-login');
+            const registerBtn = document.getElementById('register-btn');
+            const loginBtn = document.getElementById('login-btn');
+            const usernameInput = document.getElementById('username-input');
+            const videoAttendance = document.getElementById('video-attendance');
+            const canvasAttendance = document.getElementById('canvas-attendance');
+            const markAttendanceBtn = document.getElementById('mark-attendance-btn');
+
+            const homeScreen = document.getElementById('home-screen');
+            const registerScreen = document.getElementById('register-screen');
+            const loginScreen = document.getElementById('login-screen');
+            const loading = document.getElementById('loading');
+            const messageBox = document.getElementById('message-box');
+            const messageText = document.getElementById('message-text');
+            const authScreens = document.getElementById('auth-screens');
+            const dashboardContent = document.getElementById('dashboard-content');
+
+            let isVideoRegPlaying = false;
+            let isVideoLoginPlaying = false;
+            let isVideoAttendancePlaying = false;
+            let regInterval, loginInterval, attendanceInterval;
+            let registeredUsers = JSON.parse(localStorage.getItem('registeredUsers')) || {};
+            let loggedInUser = null;
+
+            // Classroom location
+            const CLASSROOM_LOCATION = { lat: 22.681432, lon: 75.879018 };
+            const RADIUS_METERS = 50;
+
+            // Utility functions
+            const showMessage = (msg) => { messageText.textContent = msg; messageBox.classList.remove('hidden'); };
+            const hideMessage = () => { messageBox.classList.add('hidden'); };
+            const goHome = () => {
+                stopAllVideo();
+                homeScreen.classList.remove('hidden');
+                registerScreen.classList.add('hidden');
+                loginScreen.classList.add('hidden');
+            };
+
+
+            window.showRegister = () => {
+                homeScreen.classList.add('hidden');
+                registerScreen.classList.remove('hidden');
+                startVideo(videoReg, canvasReg, 'register');
+            };
+
+            window.showLogin = () => {
+                homeScreen.classList.add('hidden');
+                loginScreen.classList.remove('hidden');
+                startVideo(videoLogin, canvasLogin, 'login');
+            };
+
+            const stopAllVideo = () => {
+                [videoReg, videoLogin, videoAttendance].forEach(v => {
+                    if (v && v.srcObject) {
+                        v.srcObject.getTracks().forEach(t => t.stop());
+                        v.pause();
+                    }
+                });
+                if (regInterval) clearInterval(regInterval);
+                if (loginInterval) clearInterval(loginInterval);
+                if (attendanceInterval) clearInterval(attendanceInterval);
+                isVideoRegPlaying = false;
+                isVideoLoginPlaying = false;
+                isVideoAttendancePlaying = false;
+            };
+
+            window.goHome = goHome;
+            window.stopAllVideo = stopAllVideo;
+
+            // Haversine distance
+            function getDistance(lat1, lon1, lat2, lon2) {
+                const R = 6371e3; // metres
+                const φ1 = lat1 * Math.PI / 180;
+                const φ2 = lat2 * Math.PI / 180;
+                const Δφ = (lat2 - lat1) * Math.PI / 180;
+                const Δλ = (lon2 - lon1) * Math.PI / 180;
+
+                const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+                    Math.cos(φ1) * Math.cos(φ2) *
+                    Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+                const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+                return R * c; // in metres
+            }
+
+            // Load face-api models
+            const loadModels = async () => {
+                loading.classList.remove('hidden');
+                try {
+                    await Promise.all([
+                        faceapi.nets.tinyFaceDetector.loadFromUri('https://justadudewhohacks.github.io/face-api.js/models'),
+                        faceapi.nets.faceLandmark68Net.loadFromUri('https://justadudewhohacks.github.io/face-api.js/models'),
+                        faceapi.nets.faceRecognitionNet.loadFromUri('https://justadudewhohacks.github.io/face-api.js/models')
+                    ]);
+                    loading.classList.add('hidden');
+                    goHome();
+                } catch (err) {
+                    console.error(err);
+                    showMessage("Failed to load face models.");
+                    loading.classList.add('hidden');
+                }
+            };
+
+            // Update canvas size
+            function updateCanvasSize(video, canvas) {
+                if (!video || !canvas) return;
+                canvas.width = video.offsetWidth;
+                canvas.height = video.offsetHeight;
+                faceapi.matchDimensions(canvas, { width: canvas.width, height: canvas.height });
+            }
+
+            // Start camera & detect face
+            const startVideo = async (video, canvas, mode) => {
+                stopAllVideo();
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                    video.srcObject = stream;
+                    video.onloadedmetadata = () => {
+                        video.play();
+                        // Set canvas size after a short delay for rendering
+                        setTimeout(() => updateCanvasSize(video, canvas), 200);
+                        // Optional: Listen for resize (modern browsers)
+                        const resizeObserver = new ResizeObserver(() => updateCanvasSize(video, canvas));
+                        resizeObserver.observe(video.parentElement);
+                        if (mode === 'register') {
+                            isVideoRegPlaying = true;
+                            detectFace(video, canvas, mode);
+                        } else if (mode === 'login') {
+                            isVideoLoginPlaying = true;
+                            detectFace(video, canvas, mode);
+                        } else if (mode === 'attendance') {
+                            isVideoAttendancePlaying = true;
+                            detectFace(video, canvas, mode);
+                        }
+                    };
+                } catch (err) {
+                    console.error(err);
+                    showMessage("Could not access camera.");
+                }
+            };
+
+            // Detect face
+            const detectFace = (video, canvas, mode) => {
+                const context = canvas.getContext('2d');
+                const interval = setInterval(async () => {
+                    let isPlaying;
+                    if (mode === 'register') isPlaying = isVideoRegPlaying;
+                    else if (mode === 'login') isPlaying = isVideoLoginPlaying;
+                    else if (mode === 'attendance') isPlaying = isVideoAttendancePlaying;
+                    if (!isPlaying) {
+                        clearInterval(interval);
+                        return;
+                    }
+                    if (video.paused || video.ended) {
+                        clearInterval(interval);
+                        return;
+                    }
+                    context.clearRect(0, 0, canvas.width, canvas.height);
+                    const detections = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.5 })).withFaceLandmarks().withFaceDescriptor();
+                    if (detections) {
+                        const resizedDetections = faceapi.resizeResults(detections, { width: canvas.width, height: canvas.height });
+                        faceapi.draw.drawDetections(canvas, resizedDetections);
+                        faceapi.draw.drawFaceLandmarks(canvas, resizedDetections);
+                        if (mode === 'register') registerBtn.disabled = false;
+                        else if (mode === 'login' && Object.keys(registeredUsers).length > 0) loginBtn.disabled = false;
+                        else if (mode === 'attendance' && loggedInUser) markAttendanceBtn.disabled = false;
+                    } else if (mode === 'register') {
+                        registerBtn.disabled = true;
+                    } else if (mode === 'attendance') {
+                        markAttendanceBtn.disabled = true;
+                    }
+                }, 200);
+                if (mode === 'register') regInterval = interval;
+                else if (mode === 'login') loginInterval = interval;
+                else if (mode === 'attendance') attendanceInterval = interval;
+            };
+
+            // Handle username input
+            usernameInput.addEventListener('input', () => { registerBtn.disabled = usernameInput.value.trim() === ''; });
+
+            // Register button
+            registerBtn.addEventListener('click', async () => {
+                const username = usernameInput.value.trim();
+                if (!username) { showMessage("Enter username."); return; }
+                if (registeredUsers[username]) { showMessage("Username exists."); return; }
+                const detections = await faceapi.detectSingleFace(videoReg, new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.5 })).withFaceLandmarks().withFaceDescriptor();
+                if (detections) {
+                    registeredUsers[username] = { descriptor: Array.from(detections.descriptor) };
+                    localStorage.setItem('registeredUsers', JSON.stringify(registeredUsers));
+                    showMessage("Registration successful!");
+                    goHome();
+                } else showMessage("Face not detected. Try again.");
+            });
+
+            // Login button with location verification
+            loginBtn.addEventListener('click', async () => {
+                if (Object.keys(registeredUsers).length === 0) { showMessage("No users registered."); return; }
+                const detections = await faceapi.detectSingleFace(videoLogin, new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.5 })).withFaceLandmarks().withFaceDescriptor();
+                if (!detections) { showMessage("Face not detected."); return; }
+
+                const labeled = await Promise.all(
+                    Object.entries(registeredUsers).map(([u, data]) => new faceapi.LabeledFaceDescriptors(u, [new Float32Array(data.descriptor)]))
+                );
+                const matcher = new faceapi.FaceMatcher(labeled, 0.6);
+                const bestMatch = matcher.findBestMatch(detections.descriptor);
+
+                if (bestMatch.distance >= 0.6) { showMessage("Face not recognized."); return; }
+
+                loggedInUser = { username: bestMatch.label, descriptor: new Float32Array(registeredUsers[bestMatch.label].descriptor) };
+
+                // Update UI with username
+                const username = bestMatch.label;
+                document.getElementById('nav-username').textContent = username;
+                document.getElementById('sidebar-username').textContent = username;
+                document.getElementById('sidebar-id').textContent = username + 'ID';
+                
+                // Update dashboard username
+                const dashboardUsername = document.getElementById('dashboard-username');
+                if (dashboardUsername) dashboardUsername.textContent = username;
+
+                // Face recognized -> verify location
+                if (!navigator.geolocation) { showMessage("Geolocation not supported."); return; }
+                navigator.geolocation.getCurrentPosition(pos => {
+                    const distance = getDistance(pos.coords.latitude, pos.coords.longitude, CLASSROOM_LOCATION.lat, CLASSROOM_LOCATION.lon);
+
+                    // Show dashboard after successful login
+                    authScreens.classList.add('hidden');
+                    dashboardContent.classList.remove('hidden');
+                    
+                    // Initialize dashboard
+                    initializeDashboard();
+
+                    if (distance <= RADIUS_METERS) {
+                        showMessage("Location verified ✅ Attendance marked!");
+                    } else {
+                        showMessage("Outside classroom radius ❌ Attendance denied.");
+                    }
+                }, err => {
+                    showMessage("Location permission denied.");
+                    // Still show dashboard for access
+                    authScreens.classList.add('hidden');
+                    dashboardContent.classList.remove('hidden');
+                    
+                    // Initialize dashboard
+                    initializeDashboard();
+                });
+            });
+
+            // Attendance mark button
+            markAttendanceBtn.addEventListener('click', async () => {
+                if (!loggedInUser) { showMessage("Not logged in."); return; }
+                const detections = await faceapi.detectSingleFace(videoAttendance, new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.5 })).withFaceLandmarks().withFaceDescriptor();
+                if (!detections) { showMessage("Face not detected."); return; }
+
+                const distance = faceapi.euclideanDistance(detections.descriptor, loggedInUser.descriptor);
+
+                if (distance >= 0.6) { showMessage("Face does not match logged in user."); return; }
+
+                // Face matched, verify location
+                if (!navigator.geolocation) { showMessage("Geolocation not supported."); return; }
+                navigator.geolocation.getCurrentPosition(pos => {
+                    const dist = getDistance(pos.coords.latitude, pos.coords.longitude, CLASSROOM_LOCATION.lat, CLASSROOM_LOCATION.lon);
+                    if (dist <= RADIUS_METERS) {
+                        showMessage("Attendance marked successfully ✅");
+                        // TODO: Update attendance table dynamically if needed
+                    } else {
+                        showMessage("Outside classroom ❌ Attendance not marked.");
+                    }
+                }, err => {
+                    showMessage("Location permission denied. Attendance not marked.");
+                });
+            });
+
+            // ===== Dashboard Tab Functionality =====
+            let currentTab = 'dashboard';
+            
+            // Function to switch tabs programmatically
+            window.switchTab = function(tabId) {
+                const button = document.querySelector(`.tab-btn[data-tab="${tabId}"]`);
+                if (button) {
+                    button.click();
+                }
+            };
+
+            document.querySelectorAll('.tab-btn').forEach(button => {
+                button.addEventListener('click', () => {
+                    const tabId = button.getAttribute('data-tab');
+                    if (tabId !== currentTab) {
+                        if (currentTab === 'attendance') {
+                            if (videoAttendance.srcObject) {
+                                videoAttendance.srcObject.getTracks().forEach(t => t.stop());
+                                videoAttendance.pause();
+                            }
+                            if (attendanceInterval) clearInterval(attendanceInterval);
+                            isVideoAttendancePlaying = false;
+                            markAttendanceBtn.disabled = true;
+                        }
+                        currentTab = tabId;
+                    }
+
+                    // Deactivate all tabs
+                    document.querySelectorAll('.tab-btn').forEach(btn => {
+                        if (btn.classList.contains('text-blue-400')) {
+                            btn.classList.remove('text-blue-400', 'bg-blue-900', 'border-blue-400');
+                        }
+                        btn.classList.add('text-gray-400');
+                    });
+
+                    // Activate clicked tab
+                    if (button.classList.contains('text-gray-400')) {
+                        button.classList.remove('text-gray-400');
+                    }
+                    button.classList.add('text-blue-400');
+
+                    // For mobile tabs with border
+                    if (button.classList.contains('border-b-2')) {
+                        button.classList.add('border-blue-400');
+                    }
+
+                    // For desktop tabs with background
+                    if (!button.classList.contains('border-b-2')) {
+                        button.classList.add('bg-blue-900');
+                    }
+
+                    // Hide all tab content
+                    document.querySelectorAll('.tab-content').forEach(content => {
+                        content.classList.remove('active');
+                    });
+
+                    // Show selected tab content
+                    document.getElementById(tabId).classList.add('active');
+
+                    if (tabId === 'attendance' && loggedInUser) {
+                        startVideo(videoAttendance, canvasAttendance, 'attendance');
+                    }
+                });
+            });
+
+            // ===== Dashboard Initialization =====
+            function initializeDashboard() {
+                // Update date and time
+                function updateDateTime() {
+                    const now = new Date();
+                    const dateEl = document.getElementById('dashboard-date');
+                    const timeEl = document.getElementById('dashboard-time');
+                    
+                    if (dateEl) {
+                        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                        dateEl.textContent = now.toLocaleDateString('en-US', options);
+                    }
+                    
+                    if (timeEl) {
+                        timeEl.textContent = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+                    }
+                }
+                
+                // Update stats
+                function updateDashboardStats() {
+                    // Get attendance data from localStorage
+                    const attendanceData = JSON.parse(localStorage.getItem('attendanceData') || '[]');
+                    const today = new Date().toDateString();
+                    const todayAttendance = attendanceData.filter(a => new Date(a.date).toDateString() === today);
+                    
+                    // Update attendance count
+                    const attendanceCountEl = document.getElementById('attendance-count');
+                    if (attendanceCountEl) {
+                        const totalToday = 4; // Total classes today (can be dynamic)
+                        attendanceCountEl.textContent = `${todayAttendance.length}/${totalToday}`;
+                    }
+                    
+                    // Update upcoming classes
+                    const upcomingClassesEl = document.getElementById('upcoming-classes');
+                    if (upcomingClassesEl) {
+                        const now = new Date();
+                        const currentHour = now.getHours();
+                        // Count classes after current time (simplified)
+                        upcomingClassesEl.textContent = '2'; // Can be calculated from timetable
+                    }
+                    
+                    // Update week attendance
+                    const weekAttendanceEl = document.getElementById('week-attendance');
+                    if (weekAttendanceEl) {
+                        const weekStart = new Date();
+                        weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+                        const weekAttendance = attendanceData.filter(a => new Date(a.date) >= weekStart);
+                        const weekTotal = 20; // Total classes in week
+                        const percentage = weekTotal > 0 ? Math.round((weekAttendance.length / weekTotal) * 100) : 0;
+                        weekAttendanceEl.textContent = `${percentage}%`;
+                    }
+                    
+                    // Update total classes
+                    const totalClassesEl = document.getElementById('total-classes');
+                    if (totalClassesEl) {
+                        totalClassesEl.textContent = '12'; // Total enrolled classes
+                    }
+                }
+                
+                // Update schedule from timetable data
+                function updateDashboardSchedule() {
+                    const scheduleEl = document.getElementById('dashboard-schedule');
+                    if (!scheduleEl) return;
+                    
+                    try {
+                        const timetableData = JSON.parse(localStorage.getItem('timetableData') || '{}');
+                        const today = new Date().getDay();
+                        const dayMap = { 1: 'Mon', 2: 'Tue', 3: 'Wed', 4: 'Thu', 5: 'Fri' };
+                        const currentDay = dayMap[today] || 'Mon';
+                        const todaySchedule = timetableData[currentDay] || [];
+                        
+                        if (todaySchedule.length > 0) {
+                            scheduleEl.innerHTML = todaySchedule.slice(0, 3).map(entry => {
+                                const statusColors = {
+                                    'Completed': 'bg-green-800 text-green-200',
+                                    'In Progress': 'bg-yellow-800 text-yellow-200',
+                                    'Upcoming': 'bg-blue-800 text-blue-200',
+                                    '': 'bg-gray-800 text-gray-200'
+                                };
+                                const statusClass = statusColors[entry.status] || 'bg-gray-800 text-gray-200';
+                                
+                                return `
+                                    <div class="flex items-center p-3 bg-gray-700 rounded-lg">
+                                        <div class="bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded mr-3">${escapeHtml(entry.time || '')}</div>
+                                        <div class="flex-1">
+                                            <div class="font-medium text-white">${escapeHtml(entry.subject || '')}</div>
+                                            <div class="text-xs text-gray-400">${escapeHtml(entry.room || '')}${entry.teacher ? ' • ' + escapeHtml(entry.teacher) : ''}</div>
+                                        </div>
+                                        ${entry.status ? `<span class="${statusClass} text-xs px-2 py-1 rounded-full">${escapeHtml(entry.status)}</span>` : ''}
+                                    </div>
+                                `;
+                            }).join('');
+                        }
+                    } catch (e) {
+                        console.error('Error updating schedule:', e);
+                    }
+                }
+                
+                // Initial updates
+                updateDateTime();
+                updateDashboardStats();
+                updateDashboardSchedule();
+                
+                // Update time every minute
+                setInterval(updateDateTime, 60000);
+            }
+
+            // ===== Editable Timetable System =====
+            // Helper function to escape HTML (prevent XSS)
+            function escapeHtml(s) {
+                if (s === null || s === undefined) return '';
+                return ('' + s).replace(/[&<>"']/g, c => ({
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#39;'
+                })[c]);
+            }
+
+            // Load timetable data from localStorage or use default
+            function loadTimetableData() {
+                const saved = localStorage.getItem('timetableData');
+                if (saved) {
+                    try {
+                        const parsed = JSON.parse(saved);
+                        // Validate structure
+                        if (parsed && typeof parsed === 'object') {
+                            // Ensure all days exist
+                            ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].forEach(day => {
+                                if (!Array.isArray(parsed[day])) {
+                                    parsed[day] = [];
+                                }
+                            });
+                            return parsed;
+                        }
+                    } catch (e) {
+                        console.error('Error parsing timetable data:', e);
+                        // Fall through to default
+                    }
+                }
+                // Generate unique IDs
+                const baseTime = Date.now();
+                return {
+                    'Mon': [
+                        { id: baseTime, time: '9:00', subject: 'Data Structures', room: 'Room 302', teacher: 'Prof. Sharma', status: 'Completed', borderColor: 'blue' },
+                        { id: baseTime + 1, time: '10:00', subject: 'Algorithms', room: 'Room 305', teacher: 'Prof. Gupta', status: 'In Progress', borderColor: 'blue' },
+                        { id: baseTime + 2, time: '11:00', subject: 'Free Period', room: 'Library', teacher: 'Self Study', status: 'Upcoming', borderColor: 'green' },
+                        { id: baseTime + 3, time: '12:00', subject: 'Lunch Break', room: 'Cafeteria', teacher: '', status: '', borderColor: 'gray' }
+                    ],
+                    'Tue': [],
+                    'Wed': [],
+                    'Thu': [],
+                    'Fri': []
+                };
+            }
+
+            function saveTimetableData() {
+                try {
+                    localStorage.setItem('timetableData', JSON.stringify(timetableData));
+                } catch (e) {
+                    console.error('Error saving timetable data:', e);
+                    // Handle quota exceeded or other storage errors
+                    alert('Unable to save timetable data. Your browser storage may be full.');
+                }
+            }
+
+            let timetableData = loadTimetableData();
+            let currentDay = 'Mon';
+
+            function getStatusColors(status) {
+                const colors = {
+                    'Completed': { bg: 'bg-green-800', text: 'text-green-200' },
+                    'In Progress': { bg: 'bg-yellow-800', text: 'text-yellow-200' },
+                    'Upcoming': { bg: 'bg-blue-800', text: 'text-blue-200' },
+                    '': { bg: '', text: '' }
+                };
+                return colors[status] || { bg: 'bg-gray-800', text: 'text-gray-200' };
+            }
+
+            function getBorderColorClass(color) {
+                const colors = {
+                    'blue': 'border-blue-500',
+                    'green': 'border-green-500',
+                    'yellow': 'border-yellow-500',
+                    'red': 'border-red-500',
+                    'purple': 'border-purple-500',
+                    'gray': 'border-gray-500'
+                };
+                return colors[color] || 'border-blue-500';
+            }
+
+            function getBgColorClass(color) {
+                const colors = {
+                    'blue': 'bg-blue-900',
+                    'green': 'bg-green-900',
+                    'yellow': 'bg-yellow-900',
+                    'red': 'bg-red-900',
+                    'purple': 'bg-purple-900',
+                    'gray': 'bg-gray-700'
+                };
+                return colors[color] || 'bg-blue-900';
+            }
+
+            function getTextColorClass(color) {
+                const colors = {
+                    'blue': 'text-blue-200',
+                    'green': 'text-green-200',
+                    'yellow': 'text-yellow-200',
+                    'red': 'text-red-200',
+                    'purple': 'text-purple-200',
+                    'gray': 'text-gray-300'
+                };
+                return colors[color] || 'text-blue-200';
+            }
+
+            function renderTimetable(day) {
+                const content = document.getElementById('timetableContent');
+                if (!content) return;
+                
+                // Ensure day exists in data structure
+                if (!timetableData[day]) {
+                    timetableData[day] = [];
+                }
+                
+                const entries = timetableData[day] || [];
+                
+                if (entries.length === 0) {
+                    content.innerHTML = '<div class="text-center text-gray-400 py-8">No entries for this day. Click "Add Entry" to create one.</div>';
+                    return;
+                }
+
+                content.innerHTML = entries.map(entry => {
+                    // Validate entry structure
+                    if (!entry || typeof entry.id === 'undefined') {
+                        return '';
+                    }
+                    
+                    const statusColors = getStatusColors(entry.status || '');
+                    const borderClass = getBorderColorClass(entry.borderColor || 'blue');
+                    const bgClass = getBgColorClass(entry.borderColor || 'blue');
+                    const textClass = getTextColorClass(entry.borderColor || 'blue');
+                    const statusBadge = entry.status ? 
+                        `<div class="${statusColors.bg} ${statusColors.text} text-xs px-2 py-1 rounded-full">${escapeHtml(entry.status)}</div>` : '';
+
+                    // Escape all user input to prevent XSS
+                    const safeTime = escapeHtml(entry.time || '');
+                    const safeSubject = escapeHtml(entry.subject || '');
+                    const safeRoom = escapeHtml(entry.room || '');
+                    const safeTeacher = escapeHtml(entry.teacher || '');
+                    const detailsText = safeRoom + (safeTeacher ? ' • ' + safeTeacher : '');
+
+                    return `
+                        <div class="flex items-center p-4 border-l-4 ${borderClass} ${bgClass} rounded-lg timetable-entry" data-id="${entry.id}">
+                            <div class="w-20 ${textClass} font-bold editable-time" contenteditable="true">${safeTime}</div>
+                            <div class="flex-1 ml-4">
+                                <h3 class="font-semibold editable-subject" contenteditable="true">${safeSubject}</h3>
+                                <p class="text-sm text-gray-400 editable-details" contenteditable="true">${detailsText}</p>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                ${statusBadge}
+                                <select class="editable-status bg-gray-700 text-white text-xs px-2 py-1 rounded border border-gray-600">
+                                    <option value="" ${entry.status === '' ? 'selected' : ''}>No Status</option>
+                                    <option value="Upcoming" ${entry.status === 'Upcoming' ? 'selected' : ''}>Upcoming</option>
+                                    <option value="In Progress" ${entry.status === 'In Progress' ? 'selected' : ''}>In Progress</option>
+                                    <option value="Completed" ${entry.status === 'Completed' ? 'selected' : ''}>Completed</option>
+                                </select>
+                                <select class="editable-color bg-gray-700 text-white text-xs px-2 py-1 rounded border border-gray-600">
+                                    <option value="blue" ${(entry.borderColor || 'blue') === 'blue' ? 'selected' : ''}>Blue</option>
+                                    <option value="green" ${entry.borderColor === 'green' ? 'selected' : ''}>Green</option>
+                                    <option value="yellow" ${entry.borderColor === 'yellow' ? 'selected' : ''}>Yellow</option>
+                                    <option value="red" ${entry.borderColor === 'red' ? 'selected' : ''}>Red</option>
+                                    <option value="purple" ${entry.borderColor === 'purple' ? 'selected' : ''}>Purple</option>
+                                    <option value="gray" ${entry.borderColor === 'gray' ? 'selected' : ''}>Gray</option>
+                                </select>
+                                <button class="edit-entry-btn bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs" title="Save Changes">
+                                    <i class="fas fa-save"></i>
+                                </button>
+                                <button class="delete-entry-btn bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs" title="Delete Entry">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }).filter(html => html !== '').join('');
+
+                // Attach event listeners
+                content.querySelectorAll('.edit-entry-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const entryDiv = this.closest('.timetable-entry');
+                        const id = parseInt(entryDiv.dataset.id);
+                        saveEntry(id);
+                    });
+                });
+
+                content.querySelectorAll('.delete-entry-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const entryDiv = this.closest('.timetable-entry');
+                        const id = parseInt(entryDiv.dataset.id);
+                        deleteEntry(id);
+                    });
+                });
+
+                content.querySelectorAll('.editable-status').forEach(select => {
+                    select.addEventListener('change', function() {
+                        const entryDiv = this.closest('.timetable-entry');
+                        const id = parseInt(entryDiv.dataset.id);
+                        const entry = timetableData[currentDay].find(e => e.id === id);
+                        if (entry) {
+                            entry.status = this.value;
+                            saveTimetableData();
+                            renderTimetable(currentDay);
+                        }
+                    });
+                });
+
+                content.querySelectorAll('.editable-color').forEach(select => {
+                    select.addEventListener('change', function() {
+                        const entryDiv = this.closest('.timetable-entry');
+                        const id = parseInt(entryDiv.dataset.id);
+                        const entry = timetableData[currentDay].find(e => e.id === id);
+                        if (entry) {
+                            entry.borderColor = this.value;
+                            saveTimetableData();
+                            renderTimetable(currentDay);
+                        }
+                    });
+                });
+            }
+
+            function saveEntry(id) {
+                const entryDiv = document.querySelector(`.timetable-entry[data-id="${id}"]`);
+                if (!entryDiv) {
+                    console.error('Entry not found:', id);
+                    return;
+                }
+
+                // Ensure currentDay data exists
+                if (!timetableData[currentDay]) {
+                    timetableData[currentDay] = [];
+                }
+
+                const entry = timetableData[currentDay].find(e => e.id === id);
+                if (!entry) {
+                    console.error('Entry data not found:', id);
+                    return;
+                }
+
+                const timeEl = entryDiv.querySelector('.editable-time');
+                const subjectEl = entryDiv.querySelector('.editable-subject');
+                const detailsEl = entryDiv.querySelector('.editable-details');
+
+                if (!timeEl || !subjectEl || !detailsEl) {
+                    console.error('Required elements not found');
+                    return;
+                }
+
+                // Sanitize and save
+                entry.time = timeEl.textContent.trim() || '9:00';
+                entry.subject = subjectEl.textContent.trim() || 'New Subject';
+                
+                const details = detailsEl.textContent.trim();
+                const parts = details.split(' • ');
+                entry.room = parts[0] || '';
+                entry.teacher = parts.length > 1 ? parts[1] : '';
+
+                // Ensure required fields
+                if (!entry.borderColor) entry.borderColor = 'blue';
+                if (entry.status === undefined) entry.status = '';
+
+                // Save to localStorage
+                saveTimetableData();
+
+                // Show save confirmation
+                const btn = entryDiv.querySelector('.edit-entry-btn');
+                if (btn) {
+                    const originalHtml = btn.innerHTML;
+                    btn.innerHTML = '<i class="fas fa-check"></i>';
+                    btn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+                    btn.classList.add('bg-green-600');
+                    setTimeout(() => {
+                        btn.innerHTML = originalHtml;
+                        btn.classList.remove('bg-green-600');
+                        btn.classList.add('bg-blue-600', 'hover:bg-blue-700');
+                    }, 1000);
+                }
+            }
+
+            function deleteEntry(id) {
+                if (!confirm('Are you sure you want to delete this entry?')) {
+                    return;
+                }
+                
+                // Ensure currentDay data exists
+                if (!timetableData[currentDay]) {
+                    timetableData[currentDay] = [];
+                }
+                
+                const initialLength = timetableData[currentDay].length;
+                timetableData[currentDay] = timetableData[currentDay].filter(e => e.id !== id);
+                
+                // Only save and re-render if something was actually deleted
+                if (timetableData[currentDay].length < initialLength) {
+                    saveTimetableData();
+                    renderTimetable(currentDay);
+                }
+            }
+
+            function addNewEntry() {
+                // Ensure currentDay data exists
+                if (!timetableData[currentDay]) {
+                    timetableData[currentDay] = [];
+                }
+                
+                // Generate unique ID (use timestamp + random to avoid collisions)
+                const newEntry = {
+                    id: Date.now() + Math.random(),
+                    time: '9:00',
+                    subject: 'New Subject',
+                    room: 'Room',
+                    teacher: 'Teacher',
+                    status: 'Upcoming',
+                    borderColor: 'blue'
+                };
+                
+                timetableData[currentDay].push(newEntry);
+                saveTimetableData();
+                renderTimetable(currentDay);
+            }
+
+            // ===== Timetable Day Change =====
+            window.changeDay = function (day, event) {
+                // Validate day
+                const validDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+                if (!validDays.includes(day)) {
+                    console.error('Invalid day:', day);
+                    return;
+                }
+                
+                // Update button styles - use more reliable selector
+                const buttons = document.querySelectorAll('#timetable button[onclick*="changeDay"]');
+                buttons.forEach(btn => {
+                    const btnDay = btn.getAttribute('onclick')?.match(/changeDay\('(\w+)'\)/)?.[1];
+                    if (btnDay === day) {
+                        btn.classList.add('bg-blue-700', 'text-white');
+                        btn.classList.remove('bg-gray-700', 'text-gray-300');
+                    } else {
+                        btn.classList.remove('bg-blue-700', 'text-white');
+                        btn.classList.add('bg-gray-700', 'text-gray-300');
+                    }
+                });
+                
+                const dates = {
+                    'Mon': 'Monday, 29 September 2025',
+                    'Tue': 'Tuesday, 30 September 2025',
+                    'Wed': 'Wednesday, 1 October 2025',
+                    'Thu': 'Thursday, 2 October 2025',
+                    'Fri': 'Friday, 3 October 2025'
+                };
+                const dateEl = document.getElementById('currentDate');
+                if (dateEl) {
+                    dateEl.textContent = dates[day] || 'Monday, 29 September 2025';
+                }
+                currentDay = day;
+                renderTimetable(day);
+            }
+
+            // Initialize timetable
+            function initTimetable() {
+                const addBtn = document.getElementById('addTimetableEntry');
+                if (addBtn) {
+                    addBtn.addEventListener('click', addNewEntry);
+                }
+                
+                // Initialize with Monday
+                if (document.getElementById('timetableContent')) {
+                    renderTimetable('Mon');
+                }
+            }
+
+            // Initialize on page load
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initTimetable);
+            } else {
+                initTimetable();
+            }
+
+            // ===== Suggestions Start Buttons =====
+            window.startSuggestion = function (type) {
+                const links = {
+                    'algorithms': 'https://leetcode.com/problemset/javascript/',
+                    'ml': 'https://arxiv.org/list/cs.LG/recent',
+                    'ds': 'https://www.geeksforgeeks.org/data-structures/',
+                    'project': 'https://trello.com'
+                };
+                window.open(links[type] || 'https://example.com', '_blank');
+            }
+
+            // ===== Profile Photo Change =====
+            const profilePhoto = document.getElementById('profile-photo');
+            const profilePhotoInput = document.getElementById('profile-photo-input');
+            const changePhotoBtn = document.getElementById('change-photo-btn');
+
+            // Function to handle photo selection and preview
+            function handlePhotoChange(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                // Validate file type
+                if (!file.type.startsWith('image/')) {
+                    showMessage('Please select a valid image file.');
+                    return;
+                }
+
+                // Validate file size (max 5MB)
+                if (file.size > 5 * 1024 * 1024) {
+                    showMessage('Image size should be less than 5MB.');
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const imageData = e.target.result;
+                    profilePhoto.src = imageData;
+                    
+                    // Save to localStorage immediately
+                    const savedProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+                    savedProfile.photo = imageData;
+                    localStorage.setItem('userProfile', JSON.stringify(savedProfile));
+                    
+                    showMessage('Photo updated successfully!');
+                };
+                reader.onerror = function() {
+                    showMessage('Error reading image file.');
+                };
+                reader.readAsDataURL(file);
+            }
+
+            // Add event listeners
+            if (changePhotoBtn) {
+                changePhotoBtn.addEventListener('click', () => {
+                    profilePhotoInput.click();
+                });
+            }
+
+            if (profilePhoto) {
+                profilePhoto.addEventListener('click', () => {
+                    profilePhotoInput.click();
+                });
+            }
+
+            if (profilePhotoInput) {
+                profilePhotoInput.addEventListener('change', handlePhotoChange);
+            }
+
+            // ===== Profile Save =====
+            document.getElementById('saveProfileBtn').addEventListener('click', () => {
+                const profilePhotoEl = document.getElementById('profile-photo');
+                const profile = {
+                    name: document.getElementById('profile-name').value,
+                    id: document.getElementById('profile-id').value,
+                    email: document.getElementById('profile-email').value,
+                    course: document.getElementById('profile-course').value,
+                    goals: document.getElementById('profile-goals').value,
+                    photo: profilePhotoEl ? profilePhotoEl.src : null
+                };
+                localStorage.setItem('userProfile', JSON.stringify(profile));
+                // Update sidebar if logged in
+                document.getElementById('sidebar-username').textContent = profile.name;
+                document.getElementById('sidebar-id').textContent = profile.id;
+                showMessage('Profile saved successfully!');
+            });
+
+            // Load profile on init (after login, but for demo)
+            try {
+                const savedProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+                if (savedProfile && Object.keys(savedProfile).length > 0) {
+                    const nameEl = document.getElementById('profile-name');
+                    const idEl = document.getElementById('profile-id');
+                    const emailEl = document.getElementById('profile-email');
+                    const courseEl = document.getElementById('profile-course');
+                    const goalsEl = document.getElementById('profile-goals');
+                    
+                    if (nameEl) nameEl.value = savedProfile.name || 'Rahul Sharma';
+                    if (idEl) idEl.value = savedProfile.id || 'CS2021BATCH';
+                    if (emailEl) emailEl.value = savedProfile.email || 'rahul@college.edu';
+                    if (courseEl) courseEl.value = savedProfile.course || 'Computer Science';
+                    if (goalsEl) goalsEl.value = savedProfile.goals || '';
+                    
+                    // Load profile photo if available
+                    if (savedProfile.photo && profilePhoto) {
+                        profilePhoto.src = savedProfile.photo;
+                    }
+                }
+            } catch (e) {
+                console.error('Error loading profile:', e);
+            }
+
+            // ===== Routine Export =====
+            document.getElementById('exportRoutineBtn').addEventListener('click', () => {
+                const routineText = `Daily Routine - Monday, 29 September 2025
+7:00 - Morning Routine (Completed)
+9:00 - Data Structures Class (Completed)
+10:00 - Algorithms Class (In Progress)
+11:00 - Free Period - Suggested Activity (Upcoming)
+12:00 - Lunch Break
+14:00 - Database Systems Class (Not Started)
+16:00 - Free Time - Suggested Activity (Not Started)`;
+                const blob = new Blob([routineText], { type: 'text/plain;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'daily_routine.txt';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                showMessage('Routine exported!');
+            });
+
+            // ===== Neon Rescheduler System =====
+            /* ===== in-memory ===== */
+            let classes = []; // each: {id, name, subjects: [{name, teacher, avg}], timetable: [] }
+            let absentTeachers = new Set();
+            let periodCount = 6;
+
+            /* ===== DOM refs ===== */
+            const classesContainer = document.getElementById('classesContainer');
+            const addClassBtn = document.getElementById('addClassBtn');
+            const resetBtn = document.getElementById('resetBtn');
+            const periodCountInput = document.getElementById('periodCount');
+            const timetablesInputs = document.getElementById('timetablesInputs');
+            const absentTeacherSelect = document.getElementById('absentTeacherSelect');
+            const addAbsentBtn = document.getElementById('addAbsentBtn');
+            const absentList = document.getElementById('absentList');
+            const previewBtn = document.getElementById('previewBtn');
+            const regenBtn = document.getElementById('regenBtn');
+            const previewArea = document.getElementById('previewArea');
+
+            const resultView = document.getElementById('resultView');
+            const resultTablesContainer = document.getElementById('resultTablesContainer');
+            const absentBadge = document.getElementById('absentBadge');
+            const backBtn = document.getElementById('backBtn');
+            const downloadBtn = document.getElementById('downloadBtn');
+
+            /* ===== helpers ===== */
+            function uid(prefix = 'id') { return prefix + Math.random().toString(36).slice(2, 9) }
+            function clamp(v, min, max) { return Math.max(min, Math.min(max, v)) }
+            function escapeHtml(s) { if (s === null || s === undefined) return ''; return ('' + s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]) }
+
+            /* ===== Classes CRUD ===== */
+            function addClass(initial) {
+                const id = uid('c');
+                const cls = {
+                    id,
+                    name: initial?.name || `Class ${classes.length + 1}`,
+                    subjects: initial?.subjects || [
+                        { name: 'Math', teacher: 'Alice', avg: 50 },
+                        { name: 'Science', teacher: 'Bob', avg: 60 }
+                    ],
+                    timetable: initial?.timetable || []
+                };
+                classes.push(cls);
+                renderClasses();
+                refreshAbsentSelect();
+                renderTimetableInputs();
+            }
+
+            function removeClass(id) {
+                classes = classes.filter(c => c.id !== id);
+                renderClasses();
+                refreshAbsentSelect();
+                renderTimetableInputs();
+            }
+
+            function renderClasses() {
+                classesContainer.innerHTML = '';
+                classes.forEach((c, classIndex) => {
+                    const card = document.createElement('div');
+                    card.className = 'class-card';
+                    card.innerHTML = `
+                        <div class="class-title">
+                            <div><input class="input" data-bind="name" value="${escapeHtml(c.name)}" /></div>
+                            <div style="display:flex; gap:8px;">
+                                <button class="btn ghost small" data-remove="${c.id}">Remove</button>
+                            </div>
+                        </div>
+                        <div style="margin-top:10px; font-size:13px; color:var(--muted)">Subjects (teacher + avg %). Add/remove subjects below.</div>
+                        <div class="subjects" data-subjects-area="${c.id}"></div>
+                        <div style="margin-top:8px">
+                            <button class="btn ghost" data-add-sub="${c.id}">+ Add Subject</button>
+                        </div>
+                    `;
+                    classesContainer.appendChild(card);
+
+                    // bind name change
+                    const nameInput = card.querySelector('[data-bind="name"]');
+                    nameInput.addEventListener('input', (e) => {
+                        c.name = e.target.value;
+                        renderTimetableInputs();
+                        refreshAbsentSelect();
+                    });
+
+                    // remove button
+                    card.querySelector('[data-remove]').addEventListener('click', () => removeClass(c.id));
+
+                    // render subjects area
+                    const subjectsArea = card.querySelector(`[data-subjects-area="${c.id}"]`);
+                    function renderSubjects() {
+                        subjectsArea.innerHTML = '';
+                        c.subjects.forEach((s, idx) => {
+                            const chip = document.createElement('div');
+                            chip.className = 'subject-chip';
+                            chip.innerHTML = `
+                                <div style="display:flex; gap:6px; align-items:center; justify-content:space-between;">
+                                    <div style="text-align:left; min-width:150px;">
+                                        <div style="font-weight:700">${escapeHtml(s.name)}</div>
+                                        <small>Teacher: <input class="input" data-teacher data-idx="${idx}" value="${escapeHtml(s.teacher)}" style="width:140px"/></small>
+                                        <small style="margin-left:8px">Avg: <input class="input" data-avg data-idx="${idx}" value="${escapeHtml(String(s.avg))}" style="width:80px" /></small>
+                                    </div>
+                                    <div>
+                                        <button class="btn ghost" data-del-sub="${idx}">✕</button>
+                                    </div>
+                                </div>
+                            `;
+                            subjectsArea.appendChild(chip);
+
+                            // delete subject (uses latest index by re-rendering)
+                            chip.querySelector('[data-del-sub]').addEventListener('click', () => {
+                                c.subjects.splice(idx, 1);
+                                renderClasses();
+                                renderTimetableInputs();
+                                refreshAbsentSelect();
+                            });
+
+                            // update teacher & avg (use dataset idx so handler remains correct on re-render)
+                            const teacherInput = chip.querySelector('[data-teacher]');
+                            const avgInput = chip.querySelector('[data-avg]');
+                            teacherInput.addEventListener('input', (e) => {
+                                const i = Number(e.target.dataset.idx);
+                                if (!Number.isNaN(i) && c.subjects[i]) {
+                                    c.subjects[i].teacher = e.target.value;
+                                    refreshAbsentSelect();
+                                }
+                            });
+                            avgInput.addEventListener('input', (e) => {
+                                const i = Number(e.target.dataset.idx);
+                                if (!Number.isNaN(i) && c.subjects[i]) {
+                                    const v = parseFloat(e.target.value);
+                                    c.subjects[i].avg = Number.isFinite(v) ? clamp(v, 0, 100) : 0;
+                                }
+                            });
+                        });
+                    }
+                    renderSubjects();
+
+                    // add subject
+                    card.querySelector('[data-add-sub]').addEventListener('click', () => {
+                        c.subjects.push({ name: `Subject ${c.subjects.length + 1}`, teacher: `T${Math.random().toString(36).slice(2, 5)}`, avg: 50 });
+                        renderClasses();
+                        renderTimetableInputs();
+                        refreshAbsentSelect();
+                    });
+                });
+            }
+
+            /* ===== Timetable inputs ===== */
+            function renderTimetableInputs() {
+                periodCount = Math.max(1, parseInt(periodCountInput.value) || 6);
+                timetablesInputs.innerHTML = '';
+                classes.forEach(c => {
+                    // ensure timetable length
+                    if (!Array.isArray(c.timetable) || c.timetable.length !== periodCount) {
+                        c.timetable = Array.from({ length: periodCount }, (_, i) => c.subjects[i]?.name || (c.subjects[0] ? c.subjects[0].name : 'Free'));
+                    }
+                    const wrapper = document.createElement('div');
+                    wrapper.style.minWidth = '320px';
+                    wrapper.innerHTML = `<div style="font-weight:700; margin-bottom:6px">${escapeHtml(c.name)}</div>
+                        <textarea class="input" rows="3" data-timearea="${c.id}">${escapeHtml(c.timetable.join(', '))}</textarea>
+                        <div style="font-size:12px; color:var(--muted); margin-top:6px">Use subject names exactly (comma separated). Missing subjects will be left 'Free'.</div>`;
+                    timetablesInputs.appendChild(wrapper);
+
+                    const ta = wrapper.querySelector('[data-timearea]');
+                    ta.addEventListener('change', () => {
+                        const arr = ta.value.split(',').map(s => s.trim()).filter(s => s.length > 0);
+                        // fill/trim to periodCount
+                        while (arr.length < periodCount) arr.push('Free');
+                        c.timetable = arr.slice(0, periodCount);
+                        ta.value = c.timetable.join(', ');
+                    });
+                });
+            }
+
+            /* ===== Absent UI ===== */
+            function refreshAbsentSelect() {
+                const teachers = new Set();
+                classes.forEach(c => c.subjects.forEach(s => {
+                    const t = (s.teacher || '').trim();
+                    if (t) teachers.add(t);
+                }));
+                const names = Array.from(teachers).sort();
+                absentTeacherSelect.innerHTML = '';
+                names.forEach(n => {
+                    const opt = document.createElement('option'); opt.value = n; opt.textContent = n;
+                    absentTeacherSelect.appendChild(opt);
+                });
+            }
+
+            function renderAbsentList() {
+                absentList.innerHTML = '';
+                absentTeachers.forEach(t => {
+                    const pill = document.createElement('div');
+                    pill.className = 'subject-chip';
+                    pill.style.display = 'inline-flex';
+                    pill.style.gap = '8px';
+                    pill.innerHTML = `<div style="min-width:120px">${escapeHtml(t)}</div><div><button class="btn ghost" data-remove="${escapeHtml(t)}">Remove</button></div>`;
+                    absentList.appendChild(pill);
+                    pill.querySelector('[data-remove]').addEventListener('click', () => {
+                        absentTeachers.delete(t);
+                        renderAbsentList();
+                        absentBadge.textContent = `Absent: ${absentTeachers.size}`;
+                    });
+                });
+                absentBadge.textContent = `Absent: ${absentTeachers.size}`;
+            }
+
+            /* ===== Preview ===== */
+            function renderPreview() {
+                previewArea.style.display = 'block';
+                previewArea.innerHTML = '';
+                if (classes.length === 0) {
+                    previewArea.innerHTML = '<div style="color:var(--muted)">No classes yet.</div>';
+                    return;
+                }
+                const tbl = document.createElement('table');
+                tbl.className = 'grid';
+                const thead = document.createElement('thead'), tbody = document.createElement('tbody');
+                const headRow = document.createElement('tr');
+                headRow.innerHTML = `<th>Period</th>` + classes.map(c => `<th>${escapeHtml(c.name)}</th>`).join('');
+                thead.appendChild(headRow);
+
+                for (let p = 0; p < periodCount; p++) {
+                    const tr = document.createElement('tr');
+                    const periodName = `P${p + 1}`;
+                    const cols = [`<td>${periodName}</td>`];
+                    classes.forEach(c => {
+                        const subj = c.timetable[p] || 'Free';
+                        const subjObj = c.subjects.find(s => s.name === subj);
+                        const teacher = subjObj ? subjObj.teacher : '';
+                        cols.push(`<td>
+                            <div>${escapeHtml(subj)}</div>
+                            <div class="slot-teacher">${escapeHtml(teacher || '')}</div>
+                        </td>`);
+                    });
+                    tr.innerHTML = cols.join('');
+                    tbody.appendChild(tr);
+                }
+                tbl.appendChild(thead); tbl.appendChild(tbody);
+                previewArea.appendChild(tbl);
+            }
+
+            /* ===== Rescheduling core algorithm ===== */
+            function regenerateScheduleModel() {
+                // Build teacher map: teacherName -> {teacher, subjects:Set, pairs:[]}
+                const teacherMap = new Map();
+                classes.forEach(c => {
+                    c.subjects.forEach(s => {
+                        const t = (s.teacher || '').trim();
+                        if (!t) return;
+                        if (!teacherMap.has(t)) teacherMap.set(t, { teacher: t, subjects: new Set(), pairs: [] });
+                        const entry = teacherMap.get(t);
+                        entry.subjects.add(s.name);
+                        entry.pairs.push({ classId: c.id, className: c.name, subjectName: s.name });
+                    });
+                });
+
+                // absent set (use local copy for consistency)
+                const absentSet = new Set(absentTeachers);
+
+                // prepare new schedules (subjects only)
+                const newSchedules = {};
+                classes.forEach(c => newSchedules[c.id] = c.timetable.slice());
+
+                // teacher occupied per period
+                const teacherOccupiedAt = {}; // teacher -> {period:true}
+
+                for (let p = 0; p < periodCount; p++) {
+                    // build current assignments
+                    const assignments = classes.map(c => {
+                        const subj = c.timetable[p] || 'Free';
+                        const subjObj = c.subjects.find(s => s.name === subj);
+                        const teacher = subjObj ? subjObj.teacher : '';
+                        const present = teacher ? !absentSet.has(teacher) : true;
+                        return { classId: c.id, className: c.name, subj, teacher, present, classObj: c };
+                    });
+
+                    // mark occupied teachers (present original assignments)
+                    assignments.forEach(a => {
+                        if (a.teacher && a.present) {
+                            teacherOccupiedAt[a.teacher] = teacherOccupiedAt[a.teacher] || {};
+                            teacherOccupiedAt[a.teacher][p] = true;
+                        }
+                    });
+
+                    // applicants: slots where assigned teacher is absent
+                    const applicants = assignments.filter(a => !a.present);
+
+                    // also gather free slots (optional fill)
+                    const freeSlots = assignments.filter(a => a.subj === 'Free');
+
+                    // build pool of available teachers (present & not occupied this period)
+                    const availableTeachers = [];
+                    teacherMap.forEach(info => {
+                        const t = info.teacher;
+                        if (absentSet.has(t)) return;
+                        if (teacherOccupiedAt[t] && teacherOccupiedAt[t][p]) return;
+                        availableTeachers.push({ teacher: t, subjects: Array.from(info.subjects) });
+                    });
+
+                    // helper: best teacher for class (returns {teacher, subject, avg} or null)
+                    function bestTeacherForClass(classObj) {
+                        const candidates = [];
+                        availableTeachers.forEach(info => {
+                            info.subjects.forEach(subj => {
+                                const subObj = classObj.subjects.find(ss => ss.name === subj);
+                                const avg = subObj ? (Number.isFinite(subObj.avg) ? subObj.avg : 100) : 80;
+                                candidates.push({ teacher: info.teacher, subject: subj, avg });
+                            });
+                        });
+                        if (candidates.length === 0) return null;
+                        candidates.sort((a, b) => a.avg - b.avg);
+                        return candidates[0];
+                    }
+
+                    // compute needs for applicants
+                    const applicantNeeds = applicants.map(a => {
+                        return { applicant: a, best: bestTeacherForClass(a.classObj) };
+                    });
+
+                    // sort applicants by their best.avg ascending (most needy first). nulls go last
+                    applicantNeeds.sort((A, B) => {
+                        const aVal = A.best ? A.best.avg : 1000;
+                        const bVal = B.best ? B.best.avg : 1000;
+                        return aVal - bVal;
+                    });
+
+                    // assign teachers to applicants
+                    for (const an of applicantNeeds) {
+                        const a = an.applicant;
+                        const best = an.best;
+                        if (!best) {
+                            newSchedules[a.classId][p] = 'Free';
+                            continue;
+                        }
+                        newSchedules[a.classId][p] = best.subject;
+                        teacherOccupiedAt[best.teacher] = teacherOccupiedAt[best.teacher] || {};
+                        teacherOccupiedAt[best.teacher][p] = true;
+                        // remove teacher from available list
+                        for (let i = availableTeachers.length - 1; i >= 0; i--) {
+                            if (availableTeachers[i].teacher === best.teacher) availableTeachers.splice(i, 1);
+                        }
+                    }
+
+                    // try to fill free slots with remaining teachers
+                    if (availableTeachers.length > 0 && freeSlots.length > 0) {
+                        const freeNeeds = freeSlots.map(f => {
+                            const classObj = f.classObj;
+                            const candidates = [];
+                            availableTeachers.forEach(info => {
+                                info.subjects.forEach(subj => {
+                                    const subObj = classObj.subjects.find(ss => ss.name === subj);
+                                    const avg = subObj ? (Number.isFinite(subObj.avg) ? subObj.avg : 100) : 80;
+                                    candidates.push({ teacher: info.teacher, subject: subj, avg });
+                                });
+                            });
+                            if (candidates.length === 0) return { free: f, best: null };
+                            candidates.sort((a, b) => a.avg - b.avg);
+                            return { free: f, best: candidates[0] };
+                        });
+
+                        freeNeeds.sort((a, b) => {
+                            const av = a.best ? a.best.avg : 1000;
+                            const bv = b.best ? b.best.avg : 1000;
+                            return av - bv;
+                        });
+
+                        for (const fn of freeNeeds) {
+                            if (!fn.best) continue;
+                            const teacher = fn.best.teacher;
+                            const subject = fn.best.subject;
+                            newSchedules[fn.free.classId][p] = subject;
+                            teacherOccupiedAt[teacher] = teacherOccupiedAt[teacher] || {};
+                            teacherOccupiedAt[teacher][p] = true;
+                            for (let i = availableTeachers.length - 1; i >= 0; i--) if (availableTeachers[i].teacher === teacher) availableTeachers.splice(i, 1);
+                        }
+                    }
+
+                    // any remaining applicants that did not get assignment become Free
+                    assignments.forEach(a => {
+                        if (!a.present && newSchedules[a.classId][p] === a.subj) {
+                            newSchedules[a.classId][p] = 'Free';
+                        }
+                    });
+
+                } // end periods
+
+                // convert newSchedules to result structure including chosen teacher name (prefer class's own teacher if available)
+                const result = classes.map(c => {
+                    const arr = newSchedules[c.id].slice();
+                    const finalArr = arr.map(subj => {
+                        if (subj === 'Free') return { subject: 'Free', teacher: '' };
+                        // try find the teacher in same class subjects
+                        const sObj = c.subjects.find(s => s.name === subj);
+                        if (sObj && !absentTeachers.has(sObj.teacher)) return { subject: subj, teacher: sObj.teacher };
+                        // otherwise pick any teacher (non-absent) from teacherMap that teaches subj
+                        let teacher = '';
+                        for (let [t, info] of teacherMap) {
+                            if (absentTeachers.has(t)) continue;
+                            if (info.subjects.has(subj)) {
+                                teacher = t; break;
+                            }
+                        }
+                        return { subject: subj, teacher };
+                    });
+                    return { classId: c.id, className: c.name, schedule: finalArr };
+                });
+
+                return { result, absentList: Array.from(absentTeachers) };
+            }
+
+            /* ===== UI wiring ===== */
+            addClassBtn.addEventListener('click', () => addClass());
+            resetBtn.addEventListener('click', () => {
+                if (!confirm('Reset all classes and inputs?')) return;
+                classes = [];
+                absentTeachers.clear();
+                addClass({ name: 'Class 1' });
+                addClass({ name: 'Class 2' });
+                renderClasses();
+                renderTimetableInputs();
+                refreshAbsentSelect();
+                renderAbsentList();
+                previewArea.style.display = 'none';
+            });
+
+            periodCountInput.addEventListener('change', () => renderTimetableInputs());
+
+            addAbsentBtn.addEventListener('click', () => {
+                const t = absentTeacherSelect.value;
+                if (!t) return;
+                absentTeachers.add(t);
+                renderAbsentList();
+            });
+
+            previewBtn.addEventListener('click', () => renderPreview());
+
+            regenBtn.addEventListener('click', () => {
+                if (classes.length === 0) { alert('Add at least one class.'); return; }
+                const model = regenerateScheduleModel();
+                showResult(model);
+            });
+
+            // seed data
+            addClass({
+                name: 'Computer Science A', subjects: [
+                    { name: 'Math', teacher: 'Alice', avg: 45 },
+                    { name: 'Algorithms', teacher: 'Eve', avg: 40 },
+                    { name: 'Databases', teacher: 'Bob', avg: 65 },
+                ], timetable: ['Math', 'Algorithms', 'Databases', 'Math', 'Algorithms', 'Free']
+            });
+            addClass({
+                name: 'Computer Science B', subjects: [
+                    { name: 'Math', teacher: 'Carol', avg: 70 },
+                    { name: 'Algorithms', teacher: 'Dave', avg: 55 },
+                    { name: 'Databases', teacher: 'Bob', avg: 60 },
+                ], timetable: ['Algorithms', 'Math', 'Databases', 'Math', 'Free', 'Databases']
+            });
+
+            refreshAbsentSelect();
+            renderAbsentList();
+            renderTimetableInputs();
+
+            /* Result rendering */
+            function showResult(model) {
+                resultView.style.display = 'block';
+                absentBadge.textContent = `Absent: ${model.absentList.length}`;
+                resultTablesContainer.innerHTML = '';
+
+                const legend = document.createElement('div');
+                legend.style.marginBottom = '10px';
+                legend.innerHTML = `<div style="color:var(--muted); font-size:13px">Legend: <strong style="color:#fff">Subject</strong> • <span style="color:var(--muted)">Teacher</span></div>`;
+                resultTablesContainer.appendChild(legend);
+
+                const { result } = model;
+                const periodLabels = Array.from({ length: periodCount }, (_, i) => `P${i + 1}`);
+
+                const bigTable = document.createElement('table'); bigTable.className = 'grid';
+                const thead = document.createElement('thead');
+                const headerRow = document.createElement('tr');
+                headerRow.innerHTML = `<th>Period</th>` + result.map(r => `<th>${escapeHtml(r.className)}</th>`).join('');
+                thead.appendChild(headerRow);
+                bigTable.appendChild(thead);
+
+                const tbody = document.createElement('tbody');
+                for (let p = 0; p < periodCount; p++) {
+                    const tr = document.createElement('tr');
+                    const periodName = periodLabels[p];
+                    let cols = `<td>${periodName}</td>`;
+                    result.forEach(r => {
+                        const cell = r.schedule[p];
+                        const subject = escapeHtml(cell.subject);
+                        const teacher = escapeHtml(cell.teacher);
+                        cols += `<td>
+                            <div style="font-weight:700; color: white">${subject === 'Free' ? '<span style="color:var(--muted)">Free</span>' : subject}</div>
+                            <div style="font-size:12px; color:var(--muted); margin-top:6px">${teacher || ''}</div>
+                        </td>`;
+                    });
+                    tr.innerHTML = cols;
+                    tbody.appendChild(tr);
+                }
+                bigTable.appendChild(tbody);
+                resultTablesContainer.appendChild(bigTable);
+            }
+
+            backBtn.addEventListener('click', () => {
+                resultView.style.display = 'none';
+            });
+
+            downloadBtn.addEventListener('click', () => {
+                const model = regenerateScheduleModel();
+                const res = model.result;
+                const headers = ['Period', ...res.map(r => r.className)];
+                const periodLabels = Array.from({ length: periodCount }, (_, i) => `P${i + 1}`);
+                let rows = [headers.join(',')];
+                for (let p = 0; p < periodCount; p++) {
+                    const row = [periodLabels[p]];
+                    for (const r of res) {
+                        const s = r.schedule[p];
+                        const cell = s.subject + (s.teacher ? ` (${s.teacher})` : '');
+                        row.push('"' + cell.replace(/"/g, '""') + '"');
+                    }
+                    rows.push(row.join(','));
+                }
+                const csv = rows.join('\n');
+                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url; a.download = 'regenerated_timetable.csv'; document.body.appendChild(a); a.click(); a.remove();
+                URL.revokeObjectURL(url);
+            });
+
+            // Initialize the application
+            loadModels();
+        }
+
+        // Teacher Dashboard Initialization
+        function initializeTeacherDashboard() {
+            const messageBox = document.getElementById('message-box');
+            const messageText = document.getElementById('message-text');
+
+            const showMessage = (msg) => { messageText.textContent = msg; messageBox.classList.remove('hidden'); };
+            const hideMessage = () => { messageBox.classList.add('hidden'); };
+
+            // Start Attendance Session
+            document.getElementById('start-attendance-btn').addEventListener('click', () => {
+                showMessage('Attendance session started! Students can now mark attendance.');
+            });
+
+            // Load Timetable
+            document.getElementById('load-timetable-btn').addEventListener('click', () => {
+                showMessage('Timetable loaded successfully.');
+            });
+
+            // Open Rescheduler
+            document.getElementById('open-rescheduler-btn').addEventListener('click', () => {
+                showMessage('Rescheduler opened. Manage absent teachers and regenerate schedules.');
+            });
+        }
+
+        // Admin Dashboard Initialization
+        function initializeAdminDashboard() {
+            const messageBox = document.getElementById('message-box');
+            const messageText = document.getElementById('message-text');
+
+            const showMessage = (msg) => { messageText.textContent = msg; messageBox.classList.remove('hidden'); };
+            const hideMessage = () => { messageBox.classList.add('hidden'); };
+
+            // View Users
+            document.getElementById('view-users-btn').addEventListener('click', () => {
+                showMessage('User list displayed.');
+            });
+
+            // Generate Report
+            document.getElementById('generate-report-btn').addEventListener('click', () => {
+                showMessage('Attendance report generated.');
+            });
+
+            // Edit Settings
+            document.getElementById('edit-settings-btn').addEventListener('click', () => {
+                showMessage('System settings opened for editing.');
+            });
+        }
+
+        // Global functions
+        window.logout = logout;
+        window.hideMessage = () => document.getElementById('message-box').classList.add('hidden');
+    </script>
+
+    <!-- Gemini Chat Widget -->
+    <div id="gemini-chat-widget" class="gemini-chat-widget" style="display: none;">
+        <div class="gemini-chat-header">
+            <div class="gemini-icon">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="#4facfe">
+                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+                </svg>
+            </div>
+            <h3>Gemini AI Assistant</h3>
+        </div>
+        <div id="gemini-messages" class="gemini-chat-messages">
+            <div class="gemini-message assistant">
+                👋 Hi! I'm your Gemini AI assistant. How can I help you today?
+            </div>
+        </div>
+        <div class="gemini-chat-input-container">
+            <input type="text" id="gemini-input" class="gemini-chat-input" placeholder="Type your message..." />
+            <button id="gemini-send" class="gemini-send-btn">Send</button>
+        </div>
+    </div>
+
+    <button id="gemini-toggle" class="gemini-toggle-btn" title="Chat with Gemini AI">
+        <svg viewBox="0 0 24 24">
+            <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z" />
+        </svg>
+    </button>
+
+    <script type="module">
+        // Chat Widget Controller
+        const widget = document.getElementById('gemini-chat-widget');
+        const toggleBtn = document.getElementById('gemini-toggle');
+        const sendBtn = document.getElementById('gemini-send');
+        const input = document.getElementById('gemini-input');
+        const messages = document.getElementById('gemini-messages');
+
+        let isOpen = false;
+
+        toggleBtn.addEventListener('click', () => {
+            isOpen = !isOpen;
+            widget.style.display = isOpen ? 'block' : 'none';
+            toggleBtn.style.display = isOpen ? 'none' : 'flex';
+            if (isOpen) input.focus();
+        });
+
+        // Add close on click outside
+        document.addEventListener('click', (e) => {
+            if (isOpen && !widget.contains(e.target) && e.target !== toggleBtn) {
+                isOpen = false;
+                widget.style.display = 'none';
+                toggleBtn.style.display = 'flex';
+            }
+        });
+
+        widget.addEventListener('click', (e) => e.stopPropagation());
+
+        async function sendMessage() {
+            const text = input.value.trim();
+            if (!text) return;
+
+            // Add user message
+            const userMsg = document.createElement('div');
+            userMsg.className = 'gemini-message user';
+            userMsg.textContent = text;
+            messages.appendChild(userMsg);
+
+            input.value = '';
+            sendBtn.disabled = true;
+
+            // Add typing indicator
+            const typing = document.createElement('div');
+            typing.className = 'gemini-message assistant gemini-typing';
+            typing.innerHTML = '<span></span><span></span><span></span>';
+            messages.appendChild(typing);
+            messages.scrollTop = messages.scrollHeight;
+
+            try {
+                // Wait for Gemini to be ready
+                await new Promise(resolve => {
+                    const check = () => {
+                        if (window.geminiAI) resolve();
+                        else setTimeout(check, 100);
+                    };
+                    check();
+                });
+
+                const response = await window.geminiAI.sendMessage(text);
+
+                // Remove typing indicator
+                typing.remove();
+
+                // Add AI response
+                const aiMsg = document.createElement('div');
+                aiMsg.className = 'gemini-message assistant';
+                aiMsg.textContent = response;
+                messages.appendChild(aiMsg);
+            } catch (error) {
+                typing.remove();
+                const errorMsg = document.createElement('div');
+                errorMsg.className = 'gemini-message assistant';
+                errorMsg.textContent = '❌ Error: ' + (error.message || 'Failed to get response');
+                messages.appendChild(errorMsg);
+            }
+
+            sendBtn.disabled = false;
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        sendBtn.addEventListener('click', sendMessage);
+        input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+    </script>
+</body>
+
+</html>
+
+
+
+
