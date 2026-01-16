@@ -1376,18 +1376,66 @@
                             Attendance Session</button>
                     </div>
                     <div class="bg-green-900 p-4 rounded-lg">
-                        <h2 class="text-xl font-semibold mb-4">View Class Timetable</h2>
-                        <button id="load-timetable-btn"
-                            class="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded transition">Load
-                            Timetable</button>
+                        <h2 class="text-xl font-semibold mb-4">Reschedule Classes</h2>
+                        <p class="text-gray-300 mb-4">Manage absent teachers and regenerate schedules.</p>
+                        <button id="open-rescheduler-btn"
+                            class="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded transition">Open
+                            Rescheduler</button>
                     </div>
                 </div>
-                <div class="mt-6 bg-green-900 p-4 rounded-lg">
-                    <h2 class="text-xl font-semibold mb-4">Reschedule Classes</h2>
-                    <p class="text-gray-300">Manage absent teachers and regenerate schedules.</p>
-                    <button id="open-rescheduler-btn"
-                        class="mt-4 bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded transition">Open
-                        Rescheduler</button>
+            </div>
+
+            <!-- Timetable Management Section for Teachers -->
+            <div class="bg-gray-800 p-6 rounded-lg shadow-md mt-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-semibold">Timetable Management</h2>
+                    <button class="minimize-section-btn text-gray-400 hover:text-white transition" data-section="teacher-timetable-management">
+                        <i class="fas fa-chevron-up"></i>
+                    </button>
+                </div>
+                <div id="teacher-timetable-management-content">
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-400 mb-2">Select Batch to View/Edit Timetable</label>
+                    <select id="teacher-timetable-batch-select" class="w-full px-4 py-2 border border-gray-600 rounded-lg bg-gray-700 text-white focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                        <option value="">-- Select Batch --</option>
+                    </select>
+                </div>
+
+                <div id="teacher-timetable-management-container" class="hidden">
+                    <div class="mb-4 flex gap-2">
+                        <button id="teacher-add-timetable-row" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition">
+                            <i class="fas fa-plus mr-2"></i>Add Time Slot
+                        </button>
+                        <button id="teacher-save-timetable" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition">
+                            <i class="fas fa-save mr-2"></i>Save Timetable
+                        </button>
+                    </div>
+
+                    <div class="mb-4">
+                        <h3 class="text-lg font-semibold text-gray-300">Weekly Timetable Grid</h3>
+                        <p class="text-sm text-gray-400">View and edit the complete week's timetable for this batch</p>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table id="teacher-timetable-grid" class="w-full border-collapse border border-gray-600 bg-gray-700">
+                            <thead id="teacher-timetable-header">
+                                <tr>
+                                    <th class="border border-gray-600 p-3 bg-gray-800 text-gray-300 font-semibold sticky left-0 z-10">Time</th>
+                                    <th class="border border-gray-600 p-3 bg-gray-800 text-gray-300 font-semibold min-w-[200px]">Monday</th>
+                                    <th class="border border-gray-600 p-3 bg-gray-800 text-gray-300 font-semibold min-w-[200px]">Tuesday</th>
+                                    <th class="border border-gray-600 p-3 bg-gray-800 text-gray-300 font-semibold min-w-[200px]">Wednesday</th>
+                                    <th class="border border-gray-600 p-3 bg-gray-800 text-gray-300 font-semibold min-w-[200px]">Thursday</th>
+                                    <th class="border border-gray-600 p-3 bg-gray-800 text-gray-300 font-semibold min-w-[200px]">Friday</th>
+                                    <th class="border border-gray-600 p-3 bg-gray-800 text-gray-300 font-semibold">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="teacher-timetable-body">
+                                <!-- Weekly grid rows will be added here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
                 </div>
             </div>
         </div>
@@ -4261,20 +4309,321 @@
             });
             }
 
-            // Load Timetable
-            const loadTimetableBtn = document.getElementById('load-timetable-btn');
-            if (loadTimetableBtn) {
-                loadTimetableBtn.addEventListener('click', () => {
-                showMessage('Timetable loaded successfully.');
-            });
+            // Load batch timetables helper functions
+            function loadBatchTimetables() {
+                try {
+                    const data = localStorage.getItem('batchTimetables');
+                    if (!data) return {};
+                    const parsed = JSON.parse(data);
+                    return parsed && typeof parsed === 'object' ? parsed : {};
+                } catch (error) {
+                    console.error('Error loading batch timetables:', error);
+                    return {};
+                }
             }
 
-            // Open Rescheduler
+            function saveBatchTimetables(timetables) {
+                try {
+                    localStorage.setItem('batchTimetables', JSON.stringify(timetables));
+                    return true;
+                } catch (error) {
+                    console.error('Error saving batch timetables:', error);
+                    showMessage('Error saving timetable. Storage may be full.');
+                    return false;
+                }
+            }
+
+            function loadBatches() {
+                try {
+                    const data = localStorage.getItem('adminBatches');
+                    if (!data) {
+                        return {};
+                    }
+                    const parsed = JSON.parse(data);
+                    if (parsed && typeof parsed === 'object') {
+                        Object.keys(parsed).forEach(key => {
+                            if (!Array.isArray(parsed[key])) {
+                                parsed[key] = [];
+                            }
+                        });
+                        return parsed;
+                    }
+                    return {};
+                } catch (error) {
+                    console.error('Error loading batches:', error);
+                    return {};
+                }
+            }
+
+            // Timetable Management Elements
+            const teacherTimetableBatchSelect = document.getElementById('teacher-timetable-batch-select');
+            const teacherTimetableManagementContainer = document.getElementById('teacher-timetable-management-container');
+            const teacherTimetableBody = document.getElementById('teacher-timetable-body');
+            const teacherAddTimetableRowBtn = document.getElementById('teacher-add-timetable-row');
+            const teacherSaveTimetableBtn = document.getElementById('teacher-save-timetable');
+
+            // Populate batch select for timetable
+            function renderTeacherTimetableBatchSelect() {
+                if (!teacherTimetableBatchSelect) return;
+                const batches = loadBatches();
+                const batchNames = Object.keys(batches);
+                teacherTimetableBatchSelect.innerHTML = '<option value="">-- Select Batch --</option>' +
+                    batchNames.map(name => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`).join('');
+            }
+
+            // Load and render weekly timetable grid
+            function loadTeacherTimetableGrid(batchName) {
+                if (!teacherTimetableBody) return;
+                const timetables = loadBatchTimetables();
+                const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+                
+                // Collect all time slots from all days
+                const timeSlotsMap = new Map();
+                
+                days.forEach(day => {
+                    const batchKey = `${batchName}_${day}`;
+                    const dayTimetable = timetables[batchKey] || [];
+                    dayTimetable.forEach(entry => {
+                        const time = entry.time || '';
+                        if (!timeSlotsMap.has(time)) {
+                            timeSlotsMap.set(time, {
+                                time: time,
+                                Mon: { subject: '', room: '' },
+                                Tue: { subject: '', room: '' },
+                                Wed: { subject: '', room: '' },
+                                Thu: { subject: '', room: '' },
+                                Fri: { subject: '', room: '' }
+                            });
+                        }
+                        const slot = timeSlotsMap.get(time);
+                        slot[day] = { subject: entry.subject || '', room: entry.room || '' };
+                    });
+                });
+
+                teacherTimetableBody.innerHTML = '';
+                
+                // Convert map to array and sort by time
+                const timeSlots = Array.from(timeSlotsMap.values()).sort((a, b) => {
+                    if (!a.time) return 1;
+                    if (!b.time) return -1;
+                    return a.time.localeCompare(b.time);
+                });
+
+                if (timeSlots.length === 0) {
+                    // Add one default row
+                    addTeacherTimetableRow();
+                } else {
+                    timeSlots.forEach(slot => {
+                        addTeacherTimetableRow(
+                            slot.time,
+                            slot.Mon.subject, slot.Mon.room,
+                            slot.Tue.subject, slot.Tue.room,
+                            slot.Wed.subject, slot.Wed.room,
+                            slot.Thu.subject, slot.Thu.room,
+                            slot.Fri.subject, slot.Fri.room
+                        );
+                    });
+                }
+            }
+
+            // Add row to weekly timetable grid
+            function addTeacherTimetableRow(time = '', 
+                monSubject = '', monRoom = '',
+                tueSubject = '', tueRoom = '',
+                wedSubject = '', wedRoom = '',
+                thuSubject = '', thuRoom = '',
+                friSubject = '', friRoom = '') {
+                if (!teacherTimetableBody) return;
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="border border-gray-600 p-2 bg-gray-800 sticky left-0 z-10">
+                        <input type="time" class="w-full px-2 py-1 bg-gray-700 text-white border border-gray-600 rounded" 
+                            value="${time}" placeholder="HH:MM">
+                    </td>
+                    <td class="border border-gray-600 p-2">
+                        <input type="text" class="w-full px-2 py-1 mb-1 bg-gray-800 text-white border border-gray-600 rounded" 
+                            value="${escapeHtml(monSubject)}" placeholder="Subject" data-day="Mon" data-type="subject">
+                        <input type="text" class="w-full px-2 py-1 bg-gray-800 text-white border border-gray-600 rounded" 
+                            value="${escapeHtml(monRoom)}" placeholder="Room" data-day="Mon" data-type="room">
+                    </td>
+                    <td class="border border-gray-600 p-2">
+                        <input type="text" class="w-full px-2 py-1 mb-1 bg-gray-800 text-white border border-gray-600 rounded" 
+                            value="${escapeHtml(tueSubject)}" placeholder="Subject" data-day="Tue" data-type="subject">
+                        <input type="text" class="w-full px-2 py-1 bg-gray-800 text-white border border-gray-600 rounded" 
+                            value="${escapeHtml(tueRoom)}" placeholder="Room" data-day="Tue" data-type="room">
+                    </td>
+                    <td class="border border-gray-600 p-2">
+                        <input type="text" class="w-full px-2 py-1 mb-1 bg-gray-800 text-white border border-gray-600 rounded" 
+                            value="${escapeHtml(wedSubject)}" placeholder="Subject" data-day="Wed" data-type="subject">
+                        <input type="text" class="w-full px-2 py-1 bg-gray-800 text-white border border-gray-600 rounded" 
+                            value="${escapeHtml(wedRoom)}" placeholder="Room" data-day="Wed" data-type="room">
+                    </td>
+                    <td class="border border-gray-600 p-2">
+                        <input type="text" class="w-full px-2 py-1 mb-1 bg-gray-800 text-white border border-gray-600 rounded" 
+                            value="${escapeHtml(thuSubject)}" placeholder="Subject" data-day="Thu" data-type="subject">
+                        <input type="text" class="w-full px-2 py-1 bg-gray-800 text-white border border-gray-600 rounded" 
+                            value="${escapeHtml(thuRoom)}" placeholder="Room" data-day="Thu" data-type="room">
+                    </td>
+                    <td class="border border-gray-600 p-2">
+                        <input type="text" class="w-full px-2 py-1 mb-1 bg-gray-800 text-white border border-gray-600 rounded" 
+                            value="${escapeHtml(friSubject)}" placeholder="Subject" data-day="Fri" data-type="subject">
+                        <input type="text" class="w-full px-2 py-1 bg-gray-800 text-white border border-gray-600 rounded" 
+                            value="${escapeHtml(friRoom)}" placeholder="Room" data-day="Fri" data-type="room">
+                    </td>
+                    <td class="border border-gray-600 p-2 bg-gray-800">
+                        <button class="remove-teacher-timetable-row bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs w-full">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                teacherTimetableBody.appendChild(row);
+
+                // Add remove row functionality
+                const removeBtn = row.querySelector('.remove-teacher-timetable-row');
+                if (removeBtn) {
+                    removeBtn.addEventListener('click', () => {
+                        row.remove();
+                    });
+                }
+            }
+
+            // Save weekly timetable
+            function saveTeacherTimetable() {
+                const batchName = teacherTimetableBatchSelect ? teacherTimetableBatchSelect.value : '';
+                
+                if (!batchName) {
+                    showMessage('Please select a batch.');
+                    return;
+                }
+
+                if (!teacherTimetableBody) return;
+
+                const rows = teacherTimetableBody.querySelectorAll('tr');
+                const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+                const timetables = loadBatchTimetables();
+                
+                // Initialize all days for this batch
+                days.forEach(day => {
+                    const batchKey = `${batchName}_${day}`;
+                    if (!timetables[batchKey]) {
+                        timetables[batchKey] = [];
+                    }
+                });
+                
+                // Process each row
+                rows.forEach(row => {
+                    const timeInput = row.querySelector('input[type="time"]');
+                    if (!timeInput) return;
+                    
+                    const time = timeInput.value.trim();
+                    if (!time) return; // Skip rows without time
+                    
+                    // Process each day
+                    days.forEach(day => {
+                        const subjectInput = row.querySelector(`input[data-day="${day}"][data-type="subject"]`);
+                        const roomInput = row.querySelector(`input[data-day="${day}"][data-type="room"]`);
+                        
+                        const subject = subjectInput ? subjectInput.value.trim() : '';
+                        const room = roomInput ? roomInput.value.trim() : '';
+                        
+                        // Only add entry if there's at least subject or room
+                        if (subject || room) {
+                            const batchKey = `${batchName}_${day}`;
+                            
+                            // Check if entry with this time already exists
+                            const existingIndex = timetables[batchKey].findIndex(e => e.time === time);
+                            
+                            if (existingIndex >= 0) {
+                                // Update existing entry
+                                timetables[batchKey][existingIndex] = { time, subject, room };
+                            } else {
+                                // Add new entry
+                                timetables[batchKey].push({ time, subject, room });
+                            }
+                        }
+                    });
+                });
+                
+                // Sort entries by time for each day
+                days.forEach(day => {
+                    const batchKey = `${batchName}_${day}`;
+                    if (timetables[batchKey]) {
+                        timetables[batchKey].sort((a, b) => {
+                            if (!a.time) return 1;
+                            if (!b.time) return -1;
+                            return a.time.localeCompare(b.time);
+                        });
+                    }
+                });
+                
+                if (saveBatchTimetables(timetables)) {
+                    showMessage(`Timetable saved successfully for ${batchName}!`);
+                }
+            }
+
+            // Event listeners for timetable management
+            if (teacherTimetableBatchSelect) {
+                teacherTimetableBatchSelect.addEventListener('change', function() {
+                    const batchName = this.value;
+                    if (batchName) {
+                        if (teacherTimetableManagementContainer) {
+                            teacherTimetableManagementContainer.classList.remove('hidden');
+                        }
+                        loadTeacherTimetableGrid(batchName);
+                    } else {
+                        if (teacherTimetableManagementContainer) {
+                            teacherTimetableManagementContainer.classList.add('hidden');
+                        }
+                    }
+                });
+            }
+
+            if (teacherAddTimetableRowBtn) {
+                teacherAddTimetableRowBtn.addEventListener('click', () => addTeacherTimetableRow());
+            }
+
+            if (teacherSaveTimetableBtn) {
+                teacherSaveTimetableBtn.addEventListener('click', saveTeacherTimetable);
+            }
+
+            // Initialize timetable batch select
+            renderTeacherTimetableBatchSelect();
+
+            // Minimize section functionality
+            function initTeacherMinimizeSections() {
+                const minimizeButtons = document.querySelectorAll('#teacher-dashboard .minimize-section-btn');
+                minimizeButtons.forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const sectionId = this.getAttribute('data-section');
+                        const content = document.getElementById(sectionId + '-content');
+                        const icon = this.querySelector('i');
+                        
+                        if (content && icon) {
+                            if (content.style.display === 'none') {
+                                // Expand
+                                content.style.display = '';
+                                icon.classList.remove('fa-chevron-down');
+                                icon.classList.add('fa-chevron-up');
+                            } else {
+                                // Collapse
+                                content.style.display = 'none';
+                                icon.classList.remove('fa-chevron-up');
+                                icon.classList.add('fa-chevron-down');
+                            }
+                        }
+                    });
+                });
+            }
+
+            initTeacherMinimizeSections();
+
+            // Rescheduler button (if exists)
             const openReschedulerBtn = document.getElementById('open-rescheduler-btn');
             if (openReschedulerBtn) {
                 openReschedulerBtn.addEventListener('click', () => {
-                showMessage('Rescheduler opened. Manage absent teachers and regenerate schedules.');
-            });
+                    // Your existing rescheduler functionality
+                    showMessage('Opening rescheduler...');
+                });
             }
         }
 
