@@ -145,20 +145,6 @@
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
         }
 
-        /* Unified Dashboard Styles */
-        .unified-role-view {
-            min-height: 70vh;
-        }
-
-        .role-switch-btn {
-            transition: all 0.3s ease;
-        }
-
-        .role-switch-btn.active {
-            background-color: rgba(255, 255, 255, 0.2) !important;
-            color: white !important;
-        }
-
         /* Editable Timetable Styles */
         [contenteditable="true"] {
             outline: none;
@@ -215,6 +201,8 @@
         // Get the Gemini Pro model
         const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
+
+
         // Chat history for context-aware conversations
         let chatHistory = [];
 
@@ -259,6 +247,9 @@
             chat: chat
         };
 
+        console.log("✅ Gemini AI initialized successfully!");
+        console.log("📝 Usage: await window.geminiAI.sendMessage('Your message')");
+        console.log("📝 Usage: await window.geminiAI.generate('Your prompt')");
     </script>
 
     <style>
@@ -467,12 +458,7 @@
 
 <body class="bg-gray-900 min-h-screen text-white">
     <!-- Role Selection Screen -->
-    <div id="role-selection" class="container mx-auto px-4 py-12 text-center relative">
-        <button onclick="window.location.reload()" 
-            class="absolute top-4 left-4 bg-gray-800 hover:bg-gray-700 px-3 py-2 rounded-lg transition flex items-center justify-center"
-            title="Refresh Page">
-            <i class="fas fa-sync-alt text-lg text-white"></i>
-        </button>
+    <div id="role-selection" class="container mx-auto px-4 py-12 text-center">
         <div class="mb-12">
             <i class="fas fa-graduation-cap text-6xl text-blue-400 mb-4"></i>
             <h1 class="text-4xl md:text-5xl font-bold mb-4">Welcome to Spark</h1>
@@ -518,73 +504,6 @@
         </div>
     </div>
 
-    <!-- Unified Dashboard with Role Switcher -->
-    <div id="unified-dashboard" class="hidden min-h-screen bg-gray-900">
-        <!-- Unified Navigation Bar -->
-        <nav class="bg-gradient-to-r from-blue-600 via-green-600 to-purple-600 text-white shadow-lg">
-            <div class="container mx-auto px-4">
-                <div class="flex justify-between items-center py-4">
-                    <div class="flex items-center space-x-4">
-                        <button onclick="window.location.reload()" 
-                            class="bg-gray-800 hover:bg-gray-700 px-3 py-2 rounded-lg transition flex items-center justify-center"
-                            title="Refresh Page">
-                            <i class="fas fa-sync-alt text-lg"></i>
-                        </button>
-                        <i class="fas fa-graduation-cap text-2xl"></i>
-                        <span class="text-xl font-bold">Spark - Unified Dashboard</span>
-                    </div>
-                    <div class="flex items-center space-x-4">
-                        <!-- Role Switcher -->
-                        <div class="flex items-center space-x-2 bg-gray-800 bg-opacity-50 rounded-lg p-1">
-                            <button id="role-switch-student" onclick="switchUnifiedRole('student')" 
-                                class="role-switch-btn px-4 py-2 rounded-lg transition bg-blue-600 text-white">
-                                <i class="fas fa-user-graduate mr-2"></i>Student
-                            </button>
-                            <button id="role-switch-teacher" onclick="switchUnifiedRole('teacher')" 
-                                class="role-switch-btn px-4 py-2 rounded-lg transition text-gray-300 hover:bg-gray-700">
-                                <i class="fas fa-chalkboard-teacher mr-2"></i>Teacher
-                            </button>
-                            <button id="role-switch-admin" onclick="switchUnifiedRole('admin')" 
-                                class="role-switch-btn px-4 py-2 rounded-lg transition text-gray-300 hover:bg-gray-700">
-                                <i class="fas fa-user-shield mr-2"></i>Admin
-                            </button>
-                        </div>
-                        <div class="hidden md:flex flex-col text-right">
-                            <span class="font-semibold" id="unified-nav-username">User</span>
-                            <span class="text-sm text-gray-200" id="unified-nav-role">Student</span>
-                        </div>
-                        <img id="unified-nav-profile-photo" class="h-10 w-10 rounded-full border-2 border-white object-cover"
-                            src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%236366F1'%3E%3Cpath d='M12 12a5 5 0 1 1 0-10 5 5 0 0 1 0 10zm0 2c-6.627 0-12 5.373-12 12h24c0-6.627-5.373-12-12-12z'/%3E%3C/svg%3E"
-                            alt="Profile">
-                        <button class="bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded-lg transition"
-                            onclick="logout()">Logout</button>
-                    </div>
-                </div>
-            </div>
-        </nav>
-
-        <!-- Unified Content Area -->
-        <div class="container mx-auto px-4 py-6">
-            <!-- Student View -->
-            <div id="unified-student-view" class="unified-role-view">
-                <!-- Student dashboard content will be shown here -->
-                <div id="student-content-wrapper"></div>
-            </div>
-
-            <!-- Teacher View -->
-            <div id="unified-teacher-view" class="unified-role-view hidden">
-                <!-- Teacher dashboard content will be shown here -->
-                <div id="teacher-content-wrapper"></div>
-            </div>
-
-            <!-- Admin View -->
-            <div id="unified-admin-view" class="unified-role-view hidden">
-                <!-- Admin dashboard content will be shown here -->
-                <div id="admin-content-wrapper"></div>
-            </div>
-        </div>
-    </div>
-
     <!-- Student Dashboard (Hidden Initially) -->
     <div id="student-dashboard" class="hidden">
         <!-- Navigation Bar -->
@@ -592,11 +511,6 @@
             <div class="container mx-auto px-4">
                 <div class="flex justify-between items-center py-4">
                     <div class="flex items-center space-x-2">
-                        <button onclick="window.location.reload()" 
-                            class="bg-blue-700 hover:bg-blue-800 px-3 py-2 rounded-lg transition flex items-center justify-center mr-2"
-                            title="Refresh Page">
-                            <i class="fas fa-sync-alt text-lg"></i>
-                        </button>
                         <i class="fas fa-graduation-cap text-2xl"></i>
                         <span class="text-xl font-bold">Spark</span>
                     </div>
@@ -608,11 +522,6 @@
                         <img id="nav-profile-photo" class="h-10 w-10 rounded-full border-2 border-white object-cover"
                             src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%236366F1'%3E%3Cpath d='M12 12a5 5 0 1 1 0-10 5 5 0 0 1 0 10zm0 2c-6.627 0-12 5.373-12 12h24c0-6.627-5.373-12-12-12z'/%3E%3C/svg%3E"
                             alt="Profile">
-                        <button onclick="window.location.reload()" 
-                            class="bg-blue-700 hover:bg-blue-800 px-3 py-2 rounded-lg transition flex items-center justify-center"
-                            title="Refresh Page">
-                            <i class="fas fa-sync-alt"></i>
-                        </button>
                         <button class="bg-blue-700 hover:bg-blue-800 px-4 py-2 rounded-lg transition"
                             onclick="logout()">Logout</button>
                     </div>
@@ -1359,8 +1268,12 @@
                             <div class="bg-gray-800 p-6 rounded-lg shadow-md">
                                 <h2 class="text-2xl font-bold mb-6">Daily Routine</h2>
 
-                                <div class="mb-6">
-                                    <div class="text-lg font-semibold" id="routine-date">Monday, 29 September 2025</div>
+                                <div class="mb-6 flex justify-between items-center">
+                                    <div class="text-lg font-semibold">Monday, 29 September 2025</div>
+                                    <button id="exportRoutineBtn"
+                                        class="bg-blue-900 text-blue-200 px-4 py-2 rounded-lg">
+                                        <i class="fas fa-download mr-2"></i>Export Routine
+                                    </button>
                                 </div>
 
                                 <div class="space-y-4">
@@ -1445,11 +1358,6 @@
         <nav class="bg-green-600 text-white shadow-lg">
             <div class="container mx-auto px-4 py-4 flex justify-between items-center">
                 <div class="flex items-center space-x-2">
-                    <button onclick="window.location.reload()" 
-                        class="bg-green-700 hover:bg-green-800 px-3 py-2 rounded-lg transition flex items-center justify-center mr-2"
-                        title="Refresh Page">
-                        <i class="fas fa-sync-alt text-lg"></i>
-                    </button>
                     <i class="fas fa-chalkboard-teacher text-2xl"></i>
                     <span class="text-xl font-bold">SmartClass - Teacher</span>
                 </div>
@@ -1490,11 +1398,6 @@
         <nav class="bg-purple-600 text-white shadow-lg">
             <div class="container mx-auto px-4 py-4 flex justify-between items-center">
                 <div class="flex items-center space-x-2">
-                    <button onclick="window.location.reload()" 
-                        class="bg-purple-700 hover:bg-purple-800 px-3 py-2 rounded-lg transition flex items-center justify-center mr-2"
-                        title="Refresh Page">
-                        <i class="fas fa-sync-alt text-lg"></i>
-                    </button>
                     <i class="fas fa-user-shield text-2xl"></i>
                     <span class="text-xl font-bold">SmartClass - Admin</span>
                 </div>
@@ -1531,20 +1434,9 @@
                     </div>
 
                     <div class="mb-4" id="email-input-container" style="display: none;">
-                        <label class="block text-sm font-medium text-gray-400 mb-2">Student Name</label>
-                        <input type="text" id="user-name-input" 
-                            placeholder="Enter student name"
-                            class="w-full px-4 py-2 border border-gray-600 rounded-lg bg-gray-700 text-white focus:ring-2 focus:ring-purple-500 focus:border-purple-500 mb-2">
                         <label class="block text-sm font-medium text-gray-400 mb-2">Email Address</label>
                         <input type="email" id="user-email-input" 
                             placeholder="Enter email address"
-                            class="w-full px-4 py-2 border border-gray-600 rounded-lg bg-gray-700 text-white focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
-                    </div>
-                    
-                    <div class="mb-4" id="search-users-container" style="display: none;">
-                        <label class="block text-sm font-medium text-gray-400 mb-2">Search Users</label>
-                        <input type="text" id="search-users-input" 
-                            placeholder="Search by name or email..."
                             class="w-full px-4 py-2 border border-gray-600 rounded-lg bg-gray-700 text-white focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
                     </div>
 
@@ -1677,35 +1569,9 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                     <div class="bg-purple-900 p-4 rounded-lg">
                         <h2 class="text-xl font-semibold mb-4">Attendance Reports</h2>
-                        <div class="mb-4">
-                            <label class="block text-sm font-medium text-gray-300 mb-2">Select Batch</label>
-                            <select id="report-batch-select" class="w-full px-4 py-2 border border-gray-600 rounded-lg bg-gray-700 text-white focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
-                                <option value="">-- Select Batch --</option>
-                            </select>
-                        </div>
-                        <div id="attendance-report-container" class="hidden mb-4">
-                            <div class="bg-gray-800 rounded-lg p-4 max-h-96 overflow-y-auto">
-                                <table class="w-full text-sm">
-                                    <thead>
-                                        <tr class="border-b border-gray-600">
-                                            <th class="text-left py-2 px-2">#</th>
-                                            <th class="text-left py-2 px-2">Student Name</th>
-                                            <th class="text-right py-2 px-2">Attendance %</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="attendance-report-body">
-                                        <!-- Report data will be shown here -->
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
                         <button id="generate-report-btn"
-                            class="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 rounded transition mb-2"
-                            disabled>Generate Report</button>
-                        <button id="export-report-btn"
-                            class="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded transition hidden">
-                            <i class="fas fa-download mr-2"></i>Export Report
-                        </button>
+                            class="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 rounded transition">Generate
+                            Report</button>
                     </div>
                     <div class="bg-purple-900 p-4 rounded-lg">
                         <h2 class="text-xl font-semibold mb-4">System Settings</h2>
@@ -1729,158 +1595,20 @@
     <script>
         let currentRole = null;
 
-        // Role Selection - Now uses unified dashboard
+        // Role Selection
         function selectRole(role) {
             currentRole = role;
             document.getElementById('role-selection').classList.add('hidden');
-            
-            // Hide all individual dashboards
-            const studentDash = document.getElementById('student-dashboard');
-            const teacherDash = document.getElementById('teacher-dashboard');
-            const adminDash = document.getElementById('admin-dashboard');
-            if (studentDash) studentDash.classList.add('hidden');
-            if (teacherDash) teacherDash.classList.add('hidden');
-            if (adminDash) adminDash.classList.add('hidden');
-            
-            // Show unified dashboard
-            const unifiedDash = document.getElementById('unified-dashboard');
-            if (unifiedDash) {
-                unifiedDash.classList.remove('hidden');
-                switchUnifiedRole(role);
-            } else {
-                // Fallback to individual dashboards
             const dashboard = document.getElementById(role + '-dashboard');
             if (dashboard) {
                 dashboard.classList.remove('hidden');
                 if (role === 'student') {
+                    // Initialize student-specific JS
                     initializeStudentDashboard();
                 } else if (role === 'teacher') {
                     initializeTeacherDashboard();
                 } else if (role === 'admin') {
                     initializeAdminDashboard();
-                    }
-                }
-            }
-        }
-
-        // Switch role in unified dashboard
-        function switchUnifiedRole(role) {
-            currentRole = role;
-            
-            // Update role switcher buttons
-            const roleBtns = document.querySelectorAll('.role-switch-btn');
-            roleBtns.forEach(btn => {
-                btn.classList.remove('bg-blue-600', 'bg-green-600', 'bg-purple-600', 'text-white');
-                btn.classList.add('text-gray-300');
-            });
-            
-            const studentBtn = document.getElementById('role-switch-student');
-            const teacherBtn = document.getElementById('role-switch-teacher');
-            const adminBtn = document.getElementById('role-switch-admin');
-            
-            // Hide all role views
-            const studentView = document.getElementById('unified-student-view');
-            const teacherView = document.getElementById('unified-teacher-view');
-            const adminView = document.getElementById('unified-admin-view');
-            
-            if (studentView) studentView.classList.add('hidden');
-            if (teacherView) teacherView.classList.add('hidden');
-            if (adminView) adminView.classList.add('hidden');
-            
-            // Show selected role view and update button
-            if (role === 'student') {
-                if (studentView) studentView.classList.remove('hidden');
-                if (studentBtn) {
-                    studentBtn.classList.remove('text-gray-300');
-                    studentBtn.classList.add('bg-blue-600', 'text-white');
-                }
-                // Load student dashboard content
-                loadStudentContentToUnified();
-                // Initialize after content is loaded
-                setTimeout(() => {
-                    if (typeof initializeStudentDashboard === 'function') {
-                        initializeStudentDashboard();
-                    }
-                }, 150);
-            } else if (role === 'teacher') {
-                if (teacherView) teacherView.classList.remove('hidden');
-                if (teacherBtn) {
-                    teacherBtn.classList.remove('text-gray-300');
-                    teacherBtn.classList.add('bg-green-600', 'text-white');
-                }
-                // Load teacher dashboard content
-                loadTeacherContentToUnified();
-                // Initialize after content is loaded
-                setTimeout(() => {
-                    if (typeof initializeTeacherDashboard === 'function') {
-                        initializeTeacherDashboard();
-                    }
-                }, 150);
-            } else if (role === 'admin') {
-                if (adminView) adminView.classList.remove('hidden');
-                if (adminBtn) {
-                    adminBtn.classList.remove('text-gray-300');
-                    adminBtn.classList.add('bg-purple-600', 'text-white');
-                }
-                // Load admin dashboard content
-                loadAdminContentToUnified();
-                // Initialize after content is loaded
-                setTimeout(() => {
-                    if (typeof initializeAdminDashboard === 'function') {
-                        initializeAdminDashboard();
-                    }
-                }, 150);
-            }
-            
-            // Update nav role display
-            const navRole = document.getElementById('unified-nav-role');
-            if (navRole) {
-                navRole.textContent = role.charAt(0).toUpperCase() + role.slice(1);
-            }
-        }
-
-        // Load student dashboard content into unified view
-        function loadStudentContentToUnified() {
-            const studentWrapper = document.getElementById('student-content-wrapper');
-            const studentDashboard = document.getElementById('student-dashboard');
-            if (studentWrapper && studentDashboard) {
-                // Get all content except the nav bar
-                const nav = studentDashboard.querySelector('nav');
-                const container = studentDashboard.querySelector('.container');
-                if (container) {
-                    // Clone the container content
-                    studentWrapper.innerHTML = container.outerHTML;
-                }
-            }
-        }
-
-        // Load teacher dashboard content into unified view
-        function loadTeacherContentToUnified() {
-            const teacherWrapper = document.getElementById('teacher-content-wrapper');
-            const teacherDashboard = document.getElementById('teacher-dashboard');
-            if (teacherWrapper && teacherDashboard) {
-                const container = teacherDashboard.querySelector('.container');
-                if (container) {
-                    teacherWrapper.innerHTML = container.outerHTML;
-                }
-            }
-        }
-
-        // Load admin dashboard content into unified view
-        function loadAdminContentToUnified() {
-            const adminWrapper = document.getElementById('admin-content-wrapper');
-            const adminDashboard = document.getElementById('admin-dashboard');
-            if (adminWrapper && adminDashboard) {
-                const container = adminDashboard.querySelector('.container');
-                if (container) {
-                    adminWrapper.innerHTML = container.outerHTML;
-                    // Re-initialize admin-specific functionality
-                    setTimeout(() => {
-                        if (typeof initializeAdminDashboard === 'function') {
-                            // Re-run initialization to attach event listeners to new elements
-                            initializeAdminDashboard();
-                        }
-                    }, 100);
                 }
             }
         }
@@ -1891,8 +1619,6 @@
             document.getElementById('student-dashboard').classList.add('hidden');
             document.getElementById('teacher-dashboard').classList.add('hidden');
             document.getElementById('admin-dashboard').classList.add('hidden');
-            const unifiedDash = document.getElementById('unified-dashboard');
-            if (unifiedDash) unifiedDash.classList.add('hidden');
             // Reset student state if active
             if (typeof stopAllVideo === 'function') stopAllVideo();
         }
@@ -1949,17 +1675,9 @@
             }
 
             // Utility functions
-            const showMessage = (msg, type) => { 
+            const showMessage = (msg) => { 
                 if (messageText) messageText.textContent = msg; 
-                if (messageBox) {
-                    messageBox.classList.remove('hidden');
-                    // Add type-based styling if needed
-                    if (type === 'error') {
-                        messageBox.classList.add('error-message');
-                    } else {
-                        messageBox.classList.remove('error-message');
-                    }
-                }
+                if (messageBox) messageBox.classList.remove('hidden'); 
             };
             const hideMessage = () => { 
                 if (messageBox) messageBox.classList.add('hidden'); 
@@ -2162,170 +1880,65 @@
 
             // Start camera & detect face
             const startVideo = async (video, canvas, mode) => {
-                if (!video || !canvas) {
-                    console.error('Video or canvas element not found');
-                    showMessage('Video elements not found. Please refresh the page.');
-                    return;
-                }
-                
-                // Stop other videos but keep attendance video if switching modes
-                if (mode !== 'attendance') {
-                    stopAllVideo();
-                } else {
-                    // For attendance, only stop attendance video if it's already running
-                    if (videoAttendance && videoAttendance.srcObject) {
-                        videoAttendance.srcObject.getTracks().forEach(t => t.stop());
-                        videoAttendance.pause();
-                    }
-                    if (attendanceInterval) clearInterval(attendanceInterval);
-                    isVideoAttendancePlaying = false;
-                }
-                
+                stopAllVideo();
                 try {
-                    const stream = await navigator.mediaDevices.getUserMedia({ 
-                        video: { 
-                            width: { ideal: 640 },
-                            height: { ideal: 480 },
-                            facingMode: 'user'
-                        } 
-                    });
-                    
+                    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
                     video.srcObject = stream;
-                    
                     video.onloadedmetadata = () => {
-                        video.play().then(() => {
-                            console.log(`Video started for mode: ${mode}`);
-                            // Set canvas size after a short delay for rendering
-                            setTimeout(() => {
-                                updateCanvasSize(video, canvas);
-                                // Start face detection after canvas is ready
-                                if (mode === 'register') {
-                                    isVideoRegPlaying = true;
-                                    detectFace(video, canvas, mode);
-                                } else if (mode === 'login') {
-                                    isVideoLoginPlaying = true;
-                                    detectFace(video, canvas, mode);
-                                } else if (mode === 'attendance') {
-                                    isVideoAttendancePlaying = true;
-                                    detectFace(video, canvas, mode);
-                                }
-                            }, 300);
-                        }).catch(err => {
-                            console.error('Error playing video:', err);
-                            showMessage('Error starting video. Please check camera permissions.');
-                        });
-                    };
-                    
-                    video.onerror = (err) => {
-                        console.error('Video error:', err);
-                        showMessage('Error loading video stream.');
-                    };
-                    
-                    // Optional: Listen for resize (modern browsers)
-                    if (video.parentElement && typeof ResizeObserver !== 'undefined') {
+                        video.play();
+                        // Set canvas size after a short delay for rendering
+                        setTimeout(() => updateCanvasSize(video, canvas), 200);
+                        // Optional: Listen for resize (modern browsers)
                         const resizeObserver = new ResizeObserver(() => updateCanvasSize(video, canvas));
                         resizeObserver.observe(video.parentElement);
-                    }
+                        if (mode === 'register') {
+                            isVideoRegPlaying = true;
+                            detectFace(video, canvas, mode);
+                        } else if (mode === 'login') {
+                            isVideoLoginPlaying = true;
+                            detectFace(video, canvas, mode);
+                        } else if (mode === 'attendance') {
+                            isVideoAttendancePlaying = true;
+                            detectFace(video, canvas, mode);
+                        }
+                    };
                 } catch (err) {
-                    console.error('Error accessing camera:', err);
-                    if (err.name === 'NotAllowedError') {
-                        showMessage('Camera access denied. Please allow camera access and try again.');
-                    } else if (err.name === 'NotFoundError') {
-                        showMessage('No camera found. Please connect a camera and try again.');
-                    } else {
-                        showMessage('Could not access camera. Please check your camera settings.');
-                    }
+                    console.error(err);
+                    showMessage("Could not access camera.");
                 }
             };
 
             // Detect face
             const detectFace = (video, canvas, mode) => {
-                if (!video || !canvas) {
-                    console.error('Video or canvas not available for face detection');
-                    return;
-                }
-                
-                // Ensure canvas has valid dimensions
-                if (canvas.width === 0 || canvas.height === 0) {
-                    setTimeout(() => detectFace(video, canvas, mode), 100);
-                    return;
-                }
-                
                 const context = canvas.getContext('2d');
-                if (!context) {
-                    console.error('Could not get canvas context');
-                    return;
-                }
-                
                 const interval = setInterval(async () => {
-                    try {
-                        let isPlaying;
-                        if (mode === 'register') isPlaying = isVideoRegPlaying;
-                        else if (mode === 'login') isPlaying = isVideoLoginPlaying;
-                        else if (mode === 'attendance') isPlaying = isVideoAttendancePlaying;
-                        
-                        if (!isPlaying) {
-                            clearInterval(interval);
-                            return;
-                        }
-                        
-                        if (!video || video.paused || video.ended || video.readyState < 2) {
-                            // Video not ready yet, skip this frame
-                            return;
-                        }
-                        
-                        // Check if face-api is available
-                        if (typeof faceapi === 'undefined' || !faceapi.detectSingleFace) {
-                            console.error('Face-api not available');
-                            clearInterval(interval);
-                            return;
-                        }
-                        
-                        context.clearRect(0, 0, canvas.width, canvas.height);
-                        
-                        // Detect face with error handling
-                        const detections = await faceapi.detectSingleFace(
-                            video, 
-                            new faceapi.TinyFaceDetectorOptions({ 
-                                inputSize: 320, 
-                                scoreThreshold: 0.5 
-                            })
-                        ).withFaceLandmarks().withFaceDescriptor();
-                        
-                        if (detections) {
-                            const resizedDetections = faceapi.resizeResults(detections, { 
-                                width: canvas.width, 
-                                height: canvas.height 
-                            });
-                            faceapi.draw.drawDetections(canvas, resizedDetections);
-                            faceapi.draw.drawFaceLandmarks(canvas, resizedDetections);
-                            
-                            if (mode === 'register' && registerBtn) {
-                                registerBtn.disabled = false;
-                            } else if (mode === 'login' && loginBtn && Object.keys(registeredUsers).length > 0) {
-                                loginBtn.disabled = false;
-                            } else if (mode === 'attendance' && markAttendanceBtn) {
-                                // Enable button if face is detected and users are registered
-                                if (Object.keys(registeredUsers).length > 0) {
-                                    markAttendanceBtn.disabled = false;
-                                } else {
-                                    markAttendanceBtn.disabled = true;
-                                }
-                            }
-                        } else {
-                            // No face detected
-                            if (mode === 'register' && registerBtn) {
-                                registerBtn.disabled = true;
-                            } else if (mode === 'attendance' && markAttendanceBtn) {
-                                markAttendanceBtn.disabled = true;
-                            }
-                        }
-                    } catch (error) {
-                        console.error('Error in face detection:', error);
-                        // Don't clear interval on error, just log it
+                    let isPlaying;
+                    if (mode === 'register') isPlaying = isVideoRegPlaying;
+                    else if (mode === 'login') isPlaying = isVideoLoginPlaying;
+                    else if (mode === 'attendance') isPlaying = isVideoAttendancePlaying;
+                    if (!isPlaying) {
+                        clearInterval(interval);
+                        return;
+                    }
+                    if (video.paused || video.ended) {
+                        clearInterval(interval);
+                        return;
+                    }
+                    context.clearRect(0, 0, canvas.width, canvas.height);
+                    const detections = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.5 })).withFaceLandmarks().withFaceDescriptor();
+                    if (detections) {
+                        const resizedDetections = faceapi.resizeResults(detections, { width: canvas.width, height: canvas.height });
+                        faceapi.draw.drawDetections(canvas, resizedDetections);
+                        faceapi.draw.drawFaceLandmarks(canvas, resizedDetections);
+                        if (mode === 'register') registerBtn.disabled = false;
+                        else if (mode === 'login' && Object.keys(registeredUsers).length > 0) loginBtn.disabled = false;
+                        else if (mode === 'attendance' && loggedInUser) markAttendanceBtn.disabled = false;
+                    } else if (mode === 'register') {
+                        registerBtn.disabled = true;
+                    } else if (mode === 'attendance') {
+                        markAttendanceBtn.disabled = true;
                     }
                 }, 200);
-                
                 if (mode === 'register') regInterval = interval;
                 else if (mode === 'login') loginInterval = interval;
                 else if (mode === 'attendance') attendanceInterval = interval;
@@ -2337,37 +1950,8 @@
             // Register button
             registerBtn.addEventListener('click', async () => {
                 const username = usernameInput.value.trim();
-                if (!username) { showMessage("Enter your name."); return; }
-                if (registeredUsers[username]) { showMessage("This name is already registered."); return; }
-                
-                // Check if student is approved by admin
-                try {
-                    const adminUsers = JSON.parse(localStorage.getItem('adminUsers') || '{}');
-                    const approvedStudents = adminUsers.students || [];
-                    
-                    // Check if username (name) matches any approved student name or email
-                    const isApproved = approvedStudents.some(student => {
-                        if (typeof student === 'string') {
-                            // Legacy format: just email
-                            return student.toLowerCase() === username.toLowerCase();
-                        } else if (typeof student === 'object' && student.name) {
-                            // New format: {name, email}
-                            return student.name.toLowerCase() === username.toLowerCase() || 
-                                   (student.email && student.email.toLowerCase() === username.toLowerCase());
-                        }
-                        return false;
-                    });
-                    
-                    if (!isApproved) {
-                        showMessage("You are not authorized to register. Please contact your administrator to add your name and email to the system.");
-                        return;
-                    }
-                } catch (e) {
-                    console.error('Error checking approved students:', e);
-                    showMessage("Error verifying authorization. Please contact your administrator.");
-                    return;
-                }
-                
+                if (!username) { showMessage("Enter username."); return; }
+                if (registeredUsers[username]) { showMessage("Username exists."); return; }
                 const detections = await faceapi.detectSingleFace(videoReg, new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.5 })).withFaceLandmarks().withFaceDescriptor();
                 if (detections) {
                     registeredUsers[username] = { descriptor: Array.from(detections.descriptor) };
@@ -2378,20 +1962,6 @@
                         const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
                         userProfile.username = username;
                         userProfile.name = username;
-                        
-                        // Also save email if found in admin list
-                        const adminUsers = JSON.parse(localStorage.getItem('adminUsers') || '{}');
-                        const approvedStudents = adminUsers.students || [];
-                        const studentData = approvedStudents.find(s => {
-                            if (typeof s === 'string') return s.toLowerCase() === username.toLowerCase();
-                            return s.name && s.name.toLowerCase() === username.toLowerCase();
-                        });
-                        if (studentData && typeof studentData === 'object' && studentData.email) {
-                            userProfile.email = studentData.email;
-                        } else if (typeof studentData === 'string') {
-                            userProfile.email = studentData;
-                        }
-                        
                         localStorage.setItem('userProfile', JSON.stringify(userProfile));
                     } catch (e) {
                         console.error('Error saving user profile:', e);
@@ -2472,8 +2042,8 @@
                 });
             });
 
-            // Enhanced Liveness Detection Function - Uses face movement tasks instead of blink detection
-            async function performLivenessCheck(video, duration = 8000) {
+            // Enhanced Liveness Detection Function - Prevents photo/video spoofing
+            async function performLivenessCheck(video, duration = 6000) {
                 return new Promise(async (resolve) => {
                     // Validate video input
                     if (!video) {
@@ -2487,32 +2057,25 @@
                         return;
                     }
 
+                    const frames = [];
                     const startTime = Date.now();
-                    const checkInterval = 150; // Check every 150ms
+                    const checkInterval = 150; // Check every 150ms for more frequent sampling
                     let lastFacePosition = null;
                     let lastFaceSize = null;
                     let movementDistances = []; // Track all movements
                     let sizeVariations = []; // Track face size changes
+                    let eyeAspectRatios = [];
+                    let blinkCount = 0;
                     let frameCount = 0;
-                    const minFrames = 30; // Need at least 30 frames
-                    const minMovement = 30; // Minimum pixel movement
-                    const minTotalMovement = 100; // Total movement across all frames
+                    const minFrames = 20; // Need at least 20 frames (3 seconds at 150ms intervals)
+                    const minMovement = 25; // Minimum pixel movement (increased from 10)
+                    const minTotalMovement = 50; // Total movement across all frames
+                    const minBlinks = 2; // Require at least 2 blinks
+                    const blinkThreshold = 0.25; // EAR below this indicates a blink
+                    const normalEAR = 0.30; // Normal open eye EAR
                     let checkLiveness = null;
                     let consecutiveStaticFrames = 0;
-                    const maxStaticFrames = 15; // Fail if too many consecutive static frames
-                    
-                    // Face movement tasks
-                    const tasks = [
-                        { name: 'Look Left', direction: 'left', completed: false },
-                        { name: 'Look Right', direction: 'right', completed: false },
-                        { name: 'Move Closer', direction: 'closer', completed: false },
-                        { name: 'Move Away', direction: 'away', completed: false }
-                    ];
-                    let currentTaskIndex = 0;
-                    let taskStartTime = Date.now();
-                    const taskDuration = 1500; // 1.5 seconds per task
-                    let initialFacePosition = null;
-                    let initialFaceSize = null;
+                    const maxStaticFrames = 10; // Fail if too many consecutive static frames
 
                     // Set timeout to ensure cleanup
                     const timeoutId = setTimeout(() => {
@@ -2523,24 +2086,7 @@
                         resolve({ isLive: false, reason: 'Liveness check timed out. Please try again.' });
                     }, duration + 1000); // Add buffer time
 
-                    // Update task instruction
-                    const livenessStatusText = document.getElementById('liveness-status-text');
-                    if (livenessStatusText && tasks.length > 0) {
-                        livenessStatusText.textContent = `Task: ${tasks[currentTaskIndex].name}`;
-                    }
-
                     checkLiveness = setInterval(async () => {
-                        // Update task if needed
-                        const elapsed = Date.now() - taskStartTime;
-                        if (elapsed >= taskDuration && currentTaskIndex < tasks.length) {
-                            // Move to next task
-                            currentTaskIndex++;
-                            taskStartTime = Date.now();
-                            if (livenessStatusText && currentTaskIndex < tasks.length) {
-                                livenessStatusText.textContent = `Task: ${tasks[currentTaskIndex].name}`;
-                            }
-                        }
-
                         if (Date.now() - startTime >= duration) {
                             if (checkLiveness) {
                                 clearInterval(checkLiveness);
@@ -2548,16 +2094,9 @@
                             }
                             clearTimeout(timeoutId);
                             
-                            // Evaluate liveness with task-based criteria
+                            // Evaluate liveness with strict criteria
                             if (frameCount < minFrames) {
                                 resolve({ isLive: false, reason: 'Not enough frames captured. Please ensure your face is clearly visible.' });
-                                return;
-                            }
-
-                            // Check if all tasks are completed
-                            const completedTasks = tasks.filter(t => t.completed).length;
-                            if (completedTasks < 3) {
-                                resolve({ isLive: false, reason: `Only ${completedTasks} task(s) completed. Please follow all movement instructions.` });
                                 return;
                             }
 
@@ -2573,10 +2112,46 @@
                             // Check for face size variation (zoom in/out indicates live person)
                             if (sizeVariations.length > 0) {
                                 const sizeVariance = calculateVariance(sizeVariations);
-                                if (sizeVariance < 50) {
+                                if (sizeVariance < 50) { // Face size should vary
                                     resolve({ isLive: false, reason: 'No size variation detected. Please move closer or farther from camera.' });
                                     return;
                                 }
+                            }
+
+                            // Check for actual blinks (not just variance)
+                            if (eyeAspectRatios.length < 10) {
+                                resolve({ isLive: false, reason: 'Insufficient eye data. Please ensure your eyes are clearly visible.' });
+                                return;
+                            }
+
+                            // Count actual blinks (EAR drops below threshold)
+                            blinkCount = 0;
+                            let inBlink = false;
+                            for (let i = 1; i < eyeAspectRatios.length; i++) {
+                                const prevEAR = eyeAspectRatios[i - 1];
+                                const currEAR = eyeAspectRatios[i];
+                                
+                                // Detect blink start (EAR drops below threshold)
+                                if (!inBlink && currEAR < blinkThreshold && prevEAR >= blinkThreshold) {
+                                    inBlink = true;
+                                }
+                                // Detect blink end (EAR rises back above threshold)
+                                if (inBlink && currEAR >= normalEAR && prevEAR < blinkThreshold) {
+                                    blinkCount++;
+                                    inBlink = false;
+                                }
+                            }
+
+                            if (blinkCount < minBlinks) {
+                                resolve({ isLive: false, reason: `Only ${blinkCount} blink(s) detected. Please blink naturally at least ${minBlinks} times (possible photo/video detected).` });
+                                return;
+                            }
+
+                            // Check EAR variance (should have variation)
+                            const earVariance = calculateVariance(eyeAspectRatios);
+                            if (earVariance < 0.002) {
+                                resolve({ isLive: false, reason: 'No eye movement detected. Please blink naturally (possible static image).' });
+                                return;
                             }
 
                             // All checks passed
@@ -2614,12 +2189,6 @@
                                 };
                                 const currentSize = box.width * box.height;
 
-                                // Initialize position on first detection
-                                if (!initialFacePosition) {
-                                    initialFacePosition = currentPosition;
-                                    initialFaceSize = currentSize;
-                                }
-
                                 // Track movement
                                 if (lastFacePosition) {
                                     const movement = Math.sqrt(
@@ -2637,47 +2206,40 @@
                                 }
                                 lastFaceSize = currentSize;
 
-                                // Check task completion based on current task
-                                if (currentTaskIndex < tasks.length && !tasks[currentTaskIndex].completed) {
-                                    const task = tasks[currentTaskIndex];
-                                    const elapsed = Date.now() - taskStartTime;
-                                    
-                                    if (elapsed >= taskDuration * 0.5) { // Check after half the task duration
-                                        if (task.direction === 'left' && initialFacePosition) {
-                                            const movementX = currentPosition.x - initialFacePosition.x;
-                                            if (movementX < -20) { // Moved left
-                                                task.completed = true;
-                                                if (livenessStatusText) {
-                                                    livenessStatusText.textContent = `✓ ${task.name} completed`;
-                                                }
-                                            }
-                                        } else if (task.direction === 'right' && initialFacePosition) {
-                                            const movementX = currentPosition.x - initialFacePosition.x;
-                                            if (movementX > 20) { // Moved right
-                                                task.completed = true;
-                                                if (livenessStatusText) {
-                                                    livenessStatusText.textContent = `✓ ${task.name} completed`;
-                                                }
-                                            }
-                                        } else if (task.direction === 'closer' && initialFaceSize) {
-                                            const sizeChange = currentSize - initialFaceSize;
-                                            if (sizeChange > initialFaceSize * 0.15) { // Face got 15% larger
-                                                task.completed = true;
-                                                if (livenessStatusText) {
-                                                    livenessStatusText.textContent = `✓ ${task.name} completed`;
-                                                }
-                                            }
-                                        } else if (task.direction === 'away' && initialFaceSize) {
-                                            const sizeChange = initialFaceSize - currentSize;
-                                            if (sizeChange > initialFaceSize * 0.15) { // Face got 15% smaller
-                                                task.completed = true;
-                                                if (livenessStatusText) {
-                                                    livenessStatusText.textContent = `✓ ${task.name} completed`;
-                                                }
-                                            }
+                                // Calculate Eye Aspect Ratio (EAR) for blink detection
+                                const landmarks = detections.landmarks;
+                                if (landmarks && landmarks.positions && landmarks.positions.length >= 68) {
+                                    try {
+                                        const leftEye = [
+                                            landmarks.positions[36], landmarks.positions[37],
+                                            landmarks.positions[38], landmarks.positions[39],
+                                            landmarks.positions[40], landmarks.positions[41]
+                                        ];
+                                        const rightEye = [
+                                            landmarks.positions[42], landmarks.positions[43],
+                                            landmarks.positions[44], landmarks.positions[45],
+                                            landmarks.positions[46], landmarks.positions[47]
+                                        ];
+
+                                        const leftEAR = calculateEAR(leftEye);
+                                        const rightEAR = calculateEAR(rightEye);
+                                        
+                                        // Only add if both eyes detected successfully
+                                        if (leftEAR > 0 && rightEAR > 0) {
+                                            const avgEAR = (leftEAR + rightEAR) / 2;
+                                            eyeAspectRatios.push(avgEAR);
                                         }
+                                    } catch (error) {
+                                        console.error('Error processing eye landmarks:', error);
                                     }
                                 }
+
+                                frames.push({
+                                    timestamp: Date.now(),
+                                    position: currentPosition,
+                                    size: currentSize,
+                                    detections: detections
+                                });
                             } else {
                                 // No face detected in this frame
                                 consecutiveStaticFrames++;
@@ -2747,33 +2309,9 @@
 
             // Attendance mark button with liveness detection
             markAttendanceBtn.addEventListener('click', async () => {
-                // Check if user has registered face data
-                if (Object.keys(registeredUsers).length === 0) {
-                    showMessage("No registered users found. Please register first using face recognition.");
-                    return;
-                }
-                
-                // If loggedInUser is not set, try to find it from registeredUsers
-                if (!loggedInUser) {
-                    // Try to get username from profile
-                    try {
-                        const savedProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
-                        const username = savedProfile.username || savedProfile.name || null;
-                        if (username && registeredUsers[username]) {
-                            loggedInUser = { 
-                                username: username, 
-                                descriptor: new Float32Array(registeredUsers[username].descriptor) 
-                            };
-                        } else {
-                            // If no username match, we'll try to match face during attendance
-                            showMessage("Please ensure you have registered with face recognition first.");
-                            return;
-                        }
-                    } catch (e) {
-                        console.error('Error loading user profile:', e);
-                        showMessage("Unable to verify user. Please register with face recognition first.");
-                        return;
-                    }
+                if (!loggedInUser) { 
+                    showMessage("Not logged in."); 
+                    return; 
                 }
 
                 // Check if video is available
@@ -2790,7 +2328,7 @@
                 
                 if (livenessStatus && livenessStatusText) {
                     livenessStatus.style.display = 'block';
-                    livenessStatusText.textContent = 'Verifying you are live... Please follow the movement instructions.';
+                    livenessStatusText.textContent = 'Verifying you are live... Please move your head naturally and blink 2-3 times.';
                 }
                 if (markAttendanceBtnText) {
                     markAttendanceBtnText.textContent = 'Verifying Liveness...';
@@ -2830,46 +2368,13 @@
                     return; 
                 }
 
-                // Match face against all registered users
-                let bestMatch = null;
-                let bestDistance = 1.0;
-                let matchedUsername = null;
+                const distance = faceapi.euclideanDistance(detections.descriptor, loggedInUser.descriptor);
 
-                for (const [username, userData] of Object.entries(registeredUsers)) {
-                    if (userData && userData.descriptor) {
-                        const distance = faceapi.euclideanDistance(
-                            detections.descriptor, 
-                            new Float32Array(userData.descriptor)
-                        );
-                        if (distance < bestDistance) {
-                            bestDistance = distance;
-                            bestMatch = { username, distance };
-                            matchedUsername = username;
-                        }
-                    }
-                }
-
-                // If loggedInUser was set, verify it matches
-                if (loggedInUser && loggedInUser.username) {
-                    if (matchedUsername !== loggedInUser.username || bestDistance >= 0.6) {
-                        markAttendanceBtn.disabled = false;
-                        if (markAttendanceBtnText) markAttendanceBtnText.textContent = 'Mark Attendance with Face Recognition';
-                        showMessage("Face does not match registered user. Please ensure you are using the correct account."); 
-                        return;
-                    }
-                } else {
-                    // No loggedInUser, use the best match if distance is acceptable
-                    if (bestDistance >= 0.6) {
-                        markAttendanceBtn.disabled = false;
-                        if (markAttendanceBtnText) markAttendanceBtnText.textContent = 'Mark Attendance with Face Recognition';
-                        showMessage("Face not recognized. Please ensure you have registered with face recognition."); 
-                        return;
-                    }
-                    // Set loggedInUser from matched face
-                    loggedInUser = { 
-                        username: matchedUsername, 
-                        descriptor: new Float32Array(registeredUsers[matchedUsername].descriptor) 
-                    };
+                if (distance >= 0.6) { 
+                    markAttendanceBtn.disabled = false;
+                    if (markAttendanceBtnText) markAttendanceBtnText.textContent = 'Mark Attendance with Face Recognition';
+                    showMessage("Face does not match logged in user."); 
+                    return; 
                 }
 
                 // Face matched and liveness verified, now verify location
@@ -2883,37 +2388,10 @@
                 navigator.geolocation.getCurrentPosition(pos => {
                     const dist = getDistance(pos.coords.latitude, pos.coords.longitude, CLASSROOM_LOCATION.lat, CLASSROOM_LOCATION.lon);
                     if (dist <= RADIUS_METERS) {
-                        // Save attendance data
-                        try {
-                            const attendanceData = JSON.parse(localStorage.getItem('attendanceData') || '{}');
-                            const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
-                            const studentName = loggedInUser ? loggedInUser.username : 'Unknown';
-                            
-                            if (!attendanceData[today]) {
-                                attendanceData[today] = {};
-                            }
-                            
-                            if (!attendanceData[today][studentName]) {
-                                attendanceData[today][studentName] = {
-                                    name: studentName,
-                                    date: today,
-                                    timestamp: new Date().toISOString(),
-                                    present: true
-                                };
-                            } else {
-                                // Update existing entry
-                                attendanceData[today][studentName].present = true;
-                                attendanceData[today][studentName].timestamp = new Date().toISOString();
-                            }
-                            
-                            localStorage.setItem('attendanceData', JSON.stringify(attendanceData));
-                        } catch (e) {
-                            console.error('Error saving attendance:', e);
-                        }
-                        
                         showMessage("Attendance marked successfully ✅");
                         markAttendanceBtn.disabled = false;
                         if (markAttendanceBtnText) markAttendanceBtnText.textContent = 'Mark Attendance with Face Recognition';
+                        // TODO: Update attendance table dynamically if needed
                     } else {
                         showMessage("Outside classroom ❌ Attendance not marked.");
                         markAttendanceBtn.disabled = false;
@@ -2985,70 +2463,12 @@
                     // Show selected tab content
                     document.getElementById(tabId).classList.add('active');
 
-                    if (tabId === 'attendance') {
-                        // Start video even if loggedInUser is not set yet
-                        // Face will be detected and matched when button is clicked
-                        if (videoAttendance && canvasAttendance) {
-                            // Stop any existing video first
-                            if (videoAttendance.srcObject) {
-                                videoAttendance.srcObject.getTracks().forEach(t => t.stop());
-                                videoAttendance.pause();
-                            }
-                            if (attendanceInterval) clearInterval(attendanceInterval);
-                            isVideoAttendancePlaying = false;
-                            
-                            // Ensure face-api models are loaded
-                            const checkAndStartVideo = async () => {
-                                try {
-                                    if (typeof faceapi === 'undefined' || !faceapi.nets) {
-                                        console.error('Face-api not loaded');
-                                        showMessage('Face recognition library not loaded. Please refresh the page.');
-                                        return;
-                                    }
-                                    
-                                    // Check if models are loaded
-                                    const modelsLoaded = faceapi.nets.tinyFaceDetector && faceapi.nets.tinyFaceDetector.isLoaded && 
-                                                       faceapi.nets.faceLandmark68Net && faceapi.nets.faceLandmark68Net.isLoaded && 
-                                                       faceapi.nets.faceRecognitionNet && faceapi.nets.faceRecognitionNet.isLoaded;
-                                    
-                                    if (!modelsLoaded) {
-                                        // Load models first
-                                        console.log('Loading face-api models...');
-                                        const loadingEl = document.getElementById('loading');
-                                        if (loadingEl) loadingEl.classList.remove('hidden');
-                                        await Promise.all([
-                                            faceapi.nets.tinyFaceDetector.loadFromUri('https://justadudewhohacks.github.io/face-api.js/models'),
-                                            faceapi.nets.faceLandmark68Net.loadFromUri('https://justadudewhohacks.github.io/face-api.js/models'),
-                                            faceapi.nets.faceRecognitionNet.loadFromUri('https://justadudewhohacks.github.io/face-api.js/models')
-                                        ]);
-                                        if (loadingEl) loadingEl.classList.add('hidden');
-                                        console.log('Face-api models loaded');
-                                    }
-                                    
-                                    // Start video after models are loaded
-                                    startVideo(videoAttendance, canvasAttendance, 'attendance');
-                                } catch (err) {
-                                    console.error('Error loading models or starting video:', err);
-                                    const loadingEl = document.getElementById('loading');
-                                    if (loadingEl) loadingEl.classList.add('hidden');
-                                    showMessage('Error loading face recognition. Please refresh the page.');
-                                }
-                            };
-                            
-                            checkAndStartVideo();
-                        } else {
-                            console.error('Video or canvas elements not found');
-                            showMessage('Attendance video elements not found. Please refresh the page.');
-                        }
+                    if (tabId === 'attendance' && loggedInUser) {
+                        startVideo(videoAttendance, canvasAttendance, 'attendance');
                     }
                     
                     // Refresh timetable when timetable tab is accessed
                     if (tabId === 'timetable') {
-                        // Force reload timetable data from localStorage to get latest admin changes
-                        if (typeof loadTimetableData === 'function') {
-                            timetableData = null; // Clear cache
-                            timetableData = loadTimetableData(); // Reload fresh data
-                        }
                         // Update batch info and refresh timetable
                         if (typeof updateTimetableBatchInfo === 'function') {
                             updateTimetableBatchInfo();
@@ -3429,9 +2849,7 @@
                 // Update batch info display
                 updateTimetableBatchInfo();
                 
-                // Force reload timetable data from localStorage to get latest from batch
-                // Clear any cached data first
-                timetableData = null;
+                // Reload timetable data to get latest from batch
                 timetableData = loadTimetableData();
                 
                 // Ensure day exists in data structure
@@ -3669,34 +3087,27 @@
                     const targetDay = dayMap[day];
                     
                     if (targetDay !== undefined) {
-                        // Calculate days difference from today to target day
+                        // Calculate days difference
                         let daysDiff = targetDay - currentDayOfWeek;
                         
-                        // If target day is in the past this week, show next week's date
+                        // If the target day has already passed this week, show next week
                         if (daysDiff < 0) {
                             daysDiff += 7;
                         }
-                        // If it's Sunday (0) and we want a weekday, show next week
-                        else if (currentDayOfWeek === 0 && targetDay >= 1) {
-                            daysDiff = targetDay;
+                        // If it's Sunday (0) and we want Monday (1), show next Monday
+                        if (daysDiff === 0 && currentDayOfWeek === 0) {
+                            daysDiff = 1;
                         }
-                        // If it's Saturday (6) and we want a weekday, show next week
-                        else if (currentDayOfWeek === 6 && targetDay >= 1) {
-                            daysDiff = targetDay + 1;
+                        // If today is the target day, show today
+                        if (daysDiff === 0) {
+                            daysDiff = 0;
                         }
-                        // If today is the target day, show today (daysDiff = 0)
                         
-                        // Calculate the target date
                         const targetDate = new Date(now);
                         targetDate.setDate(now.getDate() + daysDiff);
                         
-                        // Format the date
                         const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
                         dateEl.textContent = targetDate.toLocaleDateString('en-US', options);
-                    } else {
-                        // Fallback to today's date
-                        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-                        dateEl.textContent = now.toLocaleDateString('en-US', options);
                     }
                 }
                 
@@ -3963,68 +3374,6 @@
                 // Initialize real-time clock
                 initTimetableClock();
             }
-
-            // Listen for storage changes to refresh timetable when admin updates it
-            window.addEventListener('storage', function(e) {
-                if (e.key === 'batchTimetables') {
-                    // Timetable was updated, refresh the view
-                    const timetableContent = document.getElementById('timetableContent');
-                    if (timetableContent && !timetableContent.closest('.hidden')) {
-                        // Get current day
-                        let currentDay = 'Mon';
-                        const activeDayBtn = document.querySelector('#timetable button.bg-blue-700[onclick*="changeDay"]');
-                        if (activeDayBtn) {
-                            const onclickAttr = activeDayBtn.getAttribute('onclick');
-                            const match = onclickAttr ? onclickAttr.match(/changeDay\('(\w+)'\)/) : null;
-                            if (match && match[1] && ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].includes(match[1])) {
-                                currentDay = match[1];
-                            }
-                        }
-                        // Force reload and re-render
-                        timetableData = null;
-                        renderTimetable(currentDay);
-                    }
-                }
-            });
-
-            // Listen for custom event for same-tab updates (when admin saves in same tab)
-            window.addEventListener('batchTimetablesUpdated', function(e) {
-                const timetableContent = document.getElementById('timetableContent');
-                const timetableTab = document.getElementById('timetable');
-                
-                // Refresh if timetable tab is visible (either active or in unified view)
-                if (timetableContent && timetableTab) {
-                    const isVisible = !timetableTab.classList.contains('hidden') && 
-                                     (timetableTab.classList.contains('active') || 
-                                      timetableTab.closest('.unified-role-view') && 
-                                      !timetableTab.closest('.unified-role-view').classList.contains('hidden'));
-                    
-                    if (isVisible) {
-                        // Get current day
-                        let currentDay = 'Mon';
-                        const activeDayBtn = document.querySelector('#timetable button.bg-blue-700[onclick*="changeDay"]');
-                        if (activeDayBtn) {
-                            const onclickAttr = activeDayBtn.getAttribute('onclick');
-                            const match = onclickAttr ? onclickAttr.match(/changeDay\('(\w+)'\)/) : null;
-                            if (match && match[1] && ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].includes(match[1])) {
-                                currentDay = match[1];
-                            }
-                        }
-                        // Force reload and re-render
-                        timetableData = null;
-                        renderTimetable(currentDay);
-                        // Show a subtle notification
-                        const batchInfo = document.getElementById('timetable-batch-info');
-                        if (batchInfo) {
-                            const originalText = batchInfo.innerHTML;
-                            batchInfo.innerHTML = '<span class="text-green-400 text-xs">✓ Timetable updated</span>';
-                            setTimeout(() => {
-                                updateTimetableBatchInfo();
-                            }, 2000);
-                        }
-                    }
-                }
-            });
 
             // Initialize on page load
             if (document.readyState === 'loading') {
@@ -4319,6 +3668,30 @@
                 initializeSkillsOnLoad();
             }
 
+            // ===== Routine Export =====
+            const exportRoutineBtn = document.getElementById('exportRoutineBtn');
+            if (exportRoutineBtn) {
+                exportRoutineBtn.addEventListener('click', () => {
+                const routineText = `Daily Routine - Monday, 29 September 2025
+7:00 - Morning Routine (Completed)
+9:00 - Data Structures Class (Completed)
+10:00 - Algorithms Class (In Progress)
+11:00 - Free Period - Suggested Activity (Upcoming)
+12:00 - Lunch Break
+14:00 - Database Systems Class (Not Started)
+16:00 - Free Time - Suggested Activity (Not Started)`;
+                const blob = new Blob([routineText], { type: 'text/plain;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'daily_routine.txt';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                showMessage('Routine exported!');
+            });
+            }
 
             // ===== Neon Rescheduler System =====
             /* ===== in-memory ===== */
@@ -4998,30 +4371,16 @@
             const userEmailInput = document.getElementById('user-email-input');
             const addUserBtn = document.getElementById('add-user-btn');
 
-            const userNameInput = document.getElementById('user-name-input');
-            const searchUsersInput = document.getElementById('search-users-input');
-            const searchUsersContainer = document.getElementById('search-users-container');
-            
             // Show/hide email input based on user type selection
             if (userTypeSelect && emailInputContainer) {
                 userTypeSelect.addEventListener('change', function() {
                     if (this.value) {
                         emailInputContainer.style.display = 'block';
-                        if (searchUsersContainer) searchUsersContainer.style.display = 'block';
                         if (addUserBtn) addUserBtn.disabled = false;
-                        renderUsers(); // Re-render with search
                     } else {
                         emailInputContainer.style.display = 'none';
-                        if (searchUsersContainer) searchUsersContainer.style.display = 'none';
                         if (addUserBtn) addUserBtn.disabled = true;
                     }
-                });
-            }
-            
-            // Search functionality
-            if (searchUsersInput) {
-                searchUsersInput.addEventListener('input', function() {
-                    renderUsers();
                 });
             }
 
@@ -5029,26 +4388,11 @@
             if (addUserBtn && userTypeSelect && userEmailInput) {
                 addUserBtn.addEventListener('click', function() {
                     const userType = userTypeSelect.value;
-                    const name = userNameInput ? userNameInput.value.trim() : '';
                     const email = userEmailInput.value.trim();
 
-                    if (!userType) {
-                        showMessage('Please select user type.');
+                    if (!userType || !email) {
+                        showMessage('Please select user type and enter email.');
                         return;
-                    }
-                    
-                    // For students, require both name and email
-                    if (userType === 'student') {
-                        if (!name || !email) {
-                            showMessage('Please enter both name and email for students.');
-                            return;
-                        }
-                    } else {
-                        // For teachers, email is required
-                        if (!email) {
-                            showMessage('Please enter email address.');
-                            return;
-                        }
                     }
 
                     // Validate email format
@@ -5061,36 +4405,20 @@
                     const users = loadUsers();
                     const userList = users[userType + 's']; // 'student' -> 'students', 'teacher' -> 'teachers'
 
-                    // Check if email or name already exists
-                    const exists = userList.some(user => {
-                        if (typeof user === 'string') {
-                            return user.toLowerCase() === email.toLowerCase();
-                        } else if (typeof user === 'object') {
-                            return (user.email && user.email.toLowerCase() === email.toLowerCase()) ||
-                                   (user.name && user.name.toLowerCase() === name.toLowerCase());
-                        }
-                        return false;
-                    });
-                    
-                    if (exists) {
-                        showMessage(`${userType.charAt(0).toUpperCase() + userType.slice(1)} with this email or name already exists.`);
+                    // Check if email already exists
+                    if (userList.includes(email)) {
+                        showMessage(`${userType.charAt(0).toUpperCase() + userType.slice(1)} with this email already exists.`);
                         return;
                     }
 
-                    // Add user - store as object for students (name + email), string for teachers (email only)
-                    if (userType === 'student') {
-                        userList.push({ name: name, email: email });
-                    } else {
-                        userList.push(email);
-                    }
+                    // Add user
+                    userList.push(email);
                     saveUsers(users);
 
                     // Clear inputs
-                    if (userNameInput) userNameInput.value = '';
                     if (userEmailInput) userEmailInput.value = '';
                     if (userTypeSelect) userTypeSelect.value = '';
                     if (emailInputContainer) emailInputContainer.style.display = 'none';
-                    if (searchUsersContainer) searchUsersContainer.style.display = 'none';
                     if (addUserBtn) addUserBtn.disabled = true;
 
                     // Refresh display
@@ -5100,115 +4428,43 @@
                 });
             }
 
-            // Render users list with alphabetical ordering, numbering, and search
+            // Render users list
             function renderUsers() {
                 const usersList = document.getElementById('users-list');
                 if (!usersList) return;
 
                 try {
                     const users = loadUsers();
-                    const searchTerm = searchUsersInput ? searchUsersInput.value.toLowerCase().trim() : '';
                     let html = '';
 
-                    // Process and sort students
                     if (users.students && users.students.length > 0) {
-                        let studentList = users.students.map((student, index) => {
-                            if (typeof student === 'string') {
-                                // Legacy format: convert to object
-                                return { name: student, email: student, originalIndex: index };
-                            } else {
-                                return { name: student.name || '', email: student.email || '', originalIndex: index };
-                            }
+                        html += '<div class="mb-4"><h4 class="font-semibold text-purple-400 mb-2">Students</h4>';
+                        users.students.forEach((email, index) => {
+                            html += `<div class="flex items-center justify-between p-2 bg-gray-700 rounded mb-1">
+                                <span class="text-sm">${escapeHtml(email)}</span>
+                                <button class="text-red-400 hover:text-red-300 text-xs remove-user-btn" data-type="student" data-index="${index}">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>`;
                         });
-                        
-                        // Filter by search term
-                        if (searchTerm) {
-                            studentList = studentList.filter(s => 
-                                s.name.toLowerCase().includes(searchTerm) || 
-                                s.email.toLowerCase().includes(searchTerm)
-                            );
-                        }
-                        
-                        // Sort alphabetically by name
-                        studentList.sort((a, b) => {
-                            const nameA = (a.name || a.email || '').toLowerCase();
-                            const nameB = (b.name || b.email || '').toLowerCase();
-                            return nameA.localeCompare(nameB);
-                        });
-                        
-                        if (studentList.length > 0) {
-                            html += '<div class="mb-4"><h4 class="font-semibold text-purple-400 mb-2">Students</h4>';
-                            studentList.forEach((student, displayIndex) => {
-                                const actualIndex = student.originalIndex;
-                                const displayName = student.name || student.email;
-                                const displayEmail = student.email;
-                                html += `<div class="flex items-center justify-between p-2 bg-gray-700 rounded mb-1">
-                                    <div class="flex items-center gap-2">
-                                        <span class="text-xs text-gray-400 w-6">${displayIndex + 1}.</span>
-                                        <div>
-                                            <span class="text-sm font-medium">${escapeHtml(displayName)}</span>
-                                            ${displayEmail && displayEmail !== displayName ? `<span class="text-xs text-gray-400 ml-2">(${escapeHtml(displayEmail)})</span>` : ''}
-                                        </div>
-                                    </div>
-                                    <button class="text-red-400 hover:text-red-300 text-xs remove-user-btn" data-type="student" data-index="${actualIndex}">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </div>`;
-                            });
-                            html += '</div>';
-                        }
+                        html += '</div>';
                     }
 
-                    // Process and sort teachers
                     if (users.teachers && users.teachers.length > 0) {
-                        let teacherList = users.teachers.map((teacher, index) => {
-                            if (typeof teacher === 'string') {
-                                return { name: teacher, email: teacher, originalIndex: index };
-                            } else {
-                                return { name: teacher.name || '', email: teacher.email || '', originalIndex: index };
-                            }
+                        html += '<div><h4 class="font-semibold text-purple-400 mb-2">Teachers</h4>';
+                        users.teachers.forEach((email, index) => {
+                            html += `<div class="flex items-center justify-between p-2 bg-gray-700 rounded mb-1">
+                                <span class="text-sm">${escapeHtml(email)}</span>
+                                <button class="text-red-400 hover:text-red-300 text-xs remove-user-btn" data-type="teacher" data-index="${index}">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>`;
                         });
-                        
-                        // Filter by search term
-                        if (searchTerm) {
-                            teacherList = teacherList.filter(t => 
-                                t.name.toLowerCase().includes(searchTerm) || 
-                                t.email.toLowerCase().includes(searchTerm)
-                            );
-                        }
-                        
-                        // Sort alphabetically
-                        teacherList.sort((a, b) => {
-                            const nameA = (a.name || a.email || '').toLowerCase();
-                            const nameB = (b.name || b.email || '').toLowerCase();
-                            return nameA.localeCompare(nameB);
-                        });
-                        
-                        if (teacherList.length > 0) {
-                            html += '<div><h4 class="font-semibold text-purple-400 mb-2">Teachers</h4>';
-                            teacherList.forEach((teacher, displayIndex) => {
-                                const actualIndex = teacher.originalIndex;
-                                const displayName = teacher.name || teacher.email;
-                                html += `<div class="flex items-center justify-between p-2 bg-gray-700 rounded mb-1">
-                                    <div class="flex items-center gap-2">
-                                        <span class="text-xs text-gray-400 w-6">${displayIndex + 1}.</span>
-                                        <span class="text-sm">${escapeHtml(displayName)}</span>
-                                    </div>
-                                    <button class="text-red-400 hover:text-red-300 text-xs remove-user-btn" data-type="teacher" data-index="${actualIndex}">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </div>`;
-                            });
-                            html += '</div>';
-                        }
+                        html += '</div>';
                     }
 
                     if (html === '') {
-                        if (searchTerm) {
-                            html = '<p class="text-gray-500 text-sm">No users found matching your search.</p>';
-                        } else {
-                            html = '<p class="text-gray-500 text-sm">No users added yet.</p>';
-                        }
+                        html = '<p class="text-gray-500 text-sm">No users added yet.</p>';
                     }
 
                     usersList.innerHTML = html;
@@ -5399,30 +4655,12 @@
                         return;
                     }
 
-                    // Process students to handle both old (string) and new (object) formats, sorted alphabetically
-                    const studentList = students.map((student, index) => {
-                        if (typeof student === 'string') {
-                            return { name: student, email: student, originalIndex: index };
-                        } else {
-                            return { 
-                                name: student.name || student.email || '', 
-                                email: student.email || student.name || '', 
-                                originalIndex: index 
-                            };
-                        }
-                    }).sort((a, b) => (a.name || a.email || '').toLowerCase().localeCompare((b.name || b.email || '').toLowerCase()));
-
-                    studentsCheckboxList.innerHTML = studentList.map((student, displayIndex) => {
-                        const displayName = student.name || student.email;
-                        const displayEmail = student.email;
-                        const value = displayEmail || displayName;
-                        return `
+                    studentsCheckboxList.innerHTML = students.map((email, index) => `
                         <label class="flex items-center p-2 hover:bg-gray-600 rounded cursor-pointer">
-                            <input type="checkbox" class="student-checkbox mr-2" value="${escapeHtml(value)}" data-index="${student.originalIndex}">
-                            <span class="text-sm">${escapeHtml(displayName)}${displayEmail && displayEmail !== displayName ? ` <span class="text-gray-400">(${escapeHtml(displayEmail)})</span>` : ''}</span>
+                            <input type="checkbox" class="student-checkbox mr-2" value="${escapeHtml(email)}" data-index="${index}">
+                            <span class="text-sm">${escapeHtml(email)}</span>
                         </label>
-                    `;
-                    }).join('');
+                    `).join('');
 
                     // Attach checkbox listeners
                     studentsCheckboxList.querySelectorAll('.student-checkbox').forEach(checkbox => {
@@ -5645,217 +4883,13 @@
             renderBatches();
             renderBatchSelect();
             renderStudentsForBatch();
-            renderReportBatchSelect();
 
-            // Attendance Report Generation
+            // Generate Report
             const generateReportBtn = document.getElementById('generate-report-btn');
-            const reportBatchSelect = document.getElementById('report-batch-select');
-            const attendanceReportContainer = document.getElementById('attendance-report-container');
-            const attendanceReportBody = document.getElementById('attendance-report-body');
-            const exportReportBtn = document.getElementById('export-report-btn');
-            
-            // Populate report batch select
-            function renderReportBatchSelect() {
-                if (!reportBatchSelect) return;
-                try {
-                    const batches = loadBatches();
-                    const batchNames = Object.keys(batches).sort();
-                    reportBatchSelect.innerHTML = '<option value="">-- Select Batch --</option>';
-                    batchNames.forEach(batchName => {
-                        const option = document.createElement('option');
-                        option.value = batchName;
-                        option.textContent = batchName;
-                        reportBatchSelect.appendChild(option);
-                    });
-                } catch (error) {
-                    console.error('Error rendering report batch select:', error);
-                }
-            }
-            
-            // Load attendance data
-            function loadAttendanceData() {
-                try {
-                    const data = localStorage.getItem('attendanceData');
-                    if (!data) return {};
-                    return JSON.parse(data);
-                } catch (error) {
-                    console.error('Error loading attendance data:', error);
-                    return {};
-                }
-            }
-            
-            // Calculate attendance percentage for a student
-            function calculateAttendancePercentage(studentName, batchName) {
-                const attendanceData = loadAttendanceData();
-                const batches = loadBatches();
-                const batchStudents = batches[batchName] || [];
-                
-                // Check if student is in batch
-                const isInBatch = batchStudents.some(s => {
-                    if (typeof s === 'string') return s.toLowerCase() === studentName.toLowerCase();
-                    return (s.name && s.name.toLowerCase() === studentName.toLowerCase()) ||
-                           (s.email && s.email.toLowerCase() === studentName.toLowerCase());
-                });
-                
-                if (!isInBatch) return null;
-                
-                // Count total days and present days
-                let totalDays = 0;
-                let presentDays = 0;
-                
-                Object.keys(attendanceData).forEach(date => {
-                    totalDays++;
-                    if (attendanceData[date][studentName] && attendanceData[date][studentName].present) {
-                        presentDays++;
-                    }
-                });
-                
-                if (totalDays === 0) return 0;
-                return Math.round((presentDays / totalDays) * 100);
-            }
-            
-            // Generate attendance report
-            function generateAttendanceReport() {
-                const batchName = reportBatchSelect ? reportBatchSelect.value : '';
-                if (!batchName) {
-                    showMessage('Please select a batch to generate report.');
-                    return;
-                }
-                
-                const batches = loadBatches();
-                const batchStudents = batches[batchName] || [];
-                
-                if (batchStudents.length === 0) {
-                    showMessage('No students in this batch.');
-                    return;
-                }
-                
-                // Process students and calculate percentages
-                const reportData = batchStudents.map((student, index) => {
-                    let studentName = '';
-                    let studentEmail = '';
-                    
-                    if (typeof student === 'string') {
-                        studentName = student;
-                        studentEmail = student;
-                    } else if (typeof student === 'object') {
-                        studentName = student.name || student.email || '';
-                        studentEmail = student.email || '';
-                    }
-                    
-                    const percentage = calculateAttendancePercentage(studentName, batchName);
-                    
-                    return {
-                        name: studentName,
-                        email: studentEmail,
-                        percentage: percentage !== null ? percentage : 0,
-                        index: index + 1
-                    };
-                }).sort((a, b) => a.name.localeCompare(b.name)); // Sort alphabetically
-                
-                // Render report
-                if (attendanceReportBody && attendanceReportContainer) {
-                    attendanceReportBody.innerHTML = reportData.map((student, idx) => {
-                        const percentageColor = student.percentage >= 75 ? 'text-green-400' : 
-                                               student.percentage >= 50 ? 'text-yellow-400' : 'text-red-400';
-                        return `
-                            <tr class="border-b border-gray-700">
-                                <td class="py-2 px-2 text-gray-400">${idx + 1}</td>
-                                <td class="py-2 px-2">${escapeHtml(student.name)}</td>
-                                <td class="py-2 px-2 text-right ${percentageColor} font-semibold">${student.percentage}%</td>
-                            </tr>
-                        `;
-                    }).join('');
-                    
-                    attendanceReportContainer.classList.remove('hidden');
-                    if (exportReportBtn) exportReportBtn.classList.remove('hidden');
-                }
-            }
-            
-            // Export report to CSV
-            function exportAttendanceReport() {
-                const batchName = reportBatchSelect ? reportBatchSelect.value : '';
-                if (!batchName) {
-                    showMessage('Please select a batch first.');
-                    return;
-                }
-                
-                const batches = loadBatches();
-                const batchStudents = batches[batchName] || [];
-                
-                const reportData = batchStudents.map((student, index) => {
-                    let studentName = '';
-                    let studentEmail = '';
-                    
-                    if (typeof student === 'string') {
-                        studentName = student;
-                        studentEmail = student;
-                    } else if (typeof student === 'object') {
-                        studentName = student.name || student.email || '';
-                        studentEmail = student.email || '';
-                    }
-                    
-                    const percentage = calculateAttendancePercentage(studentName, batchName);
-                    
-                    return {
-                        name: studentName,
-                        email: studentEmail,
-                        percentage: percentage !== null ? percentage : 0
-                    };
-                }).sort((a, b) => a.name.localeCompare(b.name));
-                
-                // Create CSV
-                const headers = ['#', 'Student Name', 'Email', 'Attendance %'];
-                let csv = headers.join(',') + '\n';
-                
-                reportData.forEach((student, idx) => {
-                    csv += `${idx + 1},"${student.name.replace(/"/g, '""')}","${student.email.replace(/"/g, '""')}",${student.percentage}\n`;
-                });
-                
-                // Download CSV
-                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `Attendance_Report_${batchName}_${new Date().toISOString().split('T')[0]}.csv`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-                
-                showMessage('Attendance report exported successfully!');
-            }
-            
-            // Event listeners
-            if (reportBatchSelect) {
-                reportBatchSelect.addEventListener('change', function() {
-                    if (generateReportBtn) {
-                        generateReportBtn.disabled = !this.value;
-                    }
-                    if (attendanceReportContainer) {
-                        attendanceReportContainer.classList.add('hidden');
-                    }
-                    if (exportReportBtn) {
-                        exportReportBtn.classList.add('hidden');
-                    }
-                });
-            }
-            
             if (generateReportBtn) {
-                generateReportBtn.addEventListener('click', generateAttendanceReport);
-            }
-            
-            if (exportReportBtn) {
-                exportReportBtn.addEventListener('click', exportAttendanceReport);
-            }
-            
-            // Update report batch select when batches change
-            if (typeof renderBatchSelect === 'function') {
-                const originalRenderBatchSelectForReport = renderBatchSelect;
-                renderBatchSelect = function() {
-                    if (originalRenderBatchSelectForReport) originalRenderBatchSelectForReport();
-                    renderReportBatchSelect();
-                };
+                generateReportBtn.addEventListener('click', () => {
+                showMessage('Attendance report generated.');
+            });
             }
 
             // Edit Settings
@@ -6092,10 +5126,6 @@
                 
                 if (saveBatchTimetables(timetables)) {
                     showMessage(`Weekly timetable saved for ${batchName}!`);
-                    // Trigger custom event to refresh student views
-                    window.dispatchEvent(new CustomEvent('batchTimetablesUpdated', { 
-                        detail: { batchName: batchName } 
-                    }));
                 }
             }
 
@@ -6127,13 +5157,13 @@
             // Initialize timetable batch select
             renderTimetableBatchSelect();
             
-            // Store original renderBatchSelect before override (for timetable)
-            const originalRenderBatchSelectForTimetable = renderBatchSelect;
+            // Store original renderBatchSelect before override
+            const originalRenderBatchSelect = renderBatchSelect;
             
             // Override renderBatchSelect to also update timetable batch select
             renderBatchSelect = function() {
-                if (originalRenderBatchSelectForTimetable) {
-                    originalRenderBatchSelectForTimetable();
+                if (originalRenderBatchSelect) {
+                    originalRenderBatchSelect();
                 }
                 renderTimetableBatchSelect();
             };
